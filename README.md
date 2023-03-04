@@ -20,15 +20,17 @@ changelog-parser [--changelog CHANGELOG.md] [--version 0.1.0]
 $ cat CHANGELOG.md
 # Change Log
 ...
-## [0.1.0] - 2023-03-04
+## [0.2.0] - 2023-03-05
 ### Added
 - feat: some change.
+
+## [0.1.0] - 2023-03-04
+### Added
 - feat: another change.
 
 $ changelog-parser --version 0.1.0
 ## [0.1.0] - 2023-03-04
 ### Added
-- feat: some change.
 - feat: another change.
 ```
 
