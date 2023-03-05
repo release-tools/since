@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var printer = fmt.Println
+
 func main() {
 	version := flag.String("version", "", "version to parse changelog for")
 	changelogFile := flag.String("changelog", "CHANGELOG.md", "path to changelog file")
@@ -17,7 +19,7 @@ func main() {
 		panic(err)
 	}
 	for _, entry := range changes {
-		println(entry)
+		printer(entry)
 	}
 }
 
