@@ -8,13 +8,15 @@ import (
 	"strings"
 )
 
-var printer = fmt.Println
-
 func main() {
 	version := flag.String("version", "", "version to parse changelog for")
 	changelogFile := flag.String("changelog", "CHANGELOG.md", "path to changelog file")
 	flag.Parse()
-	changes, err := parseChangelog(*changelogFile, *version)
+	printChanges(*changelogFile, *version, func(s string) { fmt.Println(s) })
+}
+
+func printChanges(changelogFile string, version string, printer func(s string)) {
+	changes, err := parseChangelog(changelogFile, version)
 	if err != nil {
 		panic(err)
 	}

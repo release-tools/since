@@ -6,26 +6,29 @@ import (
 	"testing"
 )
 
-func Test_main(t *testing.T) {
+func Test_printChanges(t *testing.T) {
+	type args struct {
+		path    string
+		version string
+	}
 	tests := []struct {
 		name string
+		args args
 		want string
 	}{
 		{
-			name: "main",
-			want: "## [0.1.0] - 2023-03-04\n### Added\n- feat: initial version.\n",
+			name: "read and print entries from specific version",
+			args: args{path: "testdata/simple.md", version: "0.1.0"},
+			want: "## [0.1.0] - 2023-03-04\n### Added\n- feat: another change.\n",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var output strings.Builder
-			printer = func(a ...any) (n int, err error) {
-				output.WriteString(a[0].(string) + "\n")
-				return 0, nil
-			}
-			main()
+			printer := func(s string) { output.WriteString(s + "\n") }
+			printChanges(tt.args.path, tt.args.version, printer)
 			if !reflect.DeepEqual(output.String(), tt.want) {
-				t.Errorf("main() got = %v, want %v", output.String(), tt.want)
+				t.Errorf("printChanges() got = %v, want %v", output.String(), tt.want)
 			}
 		})
 	}
@@ -61,6 +64,12 @@ func Test_parseChangelog(t *testing.T) {
 				"- feat: another change.",
 			},
 			wantErr: false,
+		},
+		{
+			name:    "return error for nonexistent changelog file",
+			args:    args{path: "/tmp/nonexistent-changelog"},
+			want:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
