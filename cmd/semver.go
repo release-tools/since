@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/maps"
-	"strconv"
+	"os"
 	"strings"
 )
 
@@ -22,12 +22,20 @@ var semverArgs struct {
 // semverCmd represents the semver command
 var semverCmd = &cobra.Command{
 	Use:   "semver",
-	Short: "Get the next semantic version based on changelog",
-	Long: `Parse changelog file and return the next semantic version
-based on the changes. Changes influence the version according to
+	Short: "Get the next semantic version based on changes since last tag",
+	Long: `Reads the commit history for the current git repository, starting
+from the most recent tag. Returns the next semantic version
+based on the changes.
+
+Changes influence the version according to
 conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		determineNextVersion(semverArgs.repoPath, semverArgs.tag)
+		nextVersion := determineNextVersion(semverArgs.repoPath, semverArgs.tag)
+		if nextVersion == "" {
+			os.Exit(1)
+		}
+		println(nextVersion)
 	},
 }
 
@@ -35,96 +43,56 @@ func init() {
 	rootCmd.AddCommand(semverCmd)
 
 	semverCmd.Flags().StringVarP(&semverArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
-	semverCmd.Flags().StringVarP(&semverArgs.tag, "tag", "t", "", "Search for changes after this tag")
+	semverCmd.Flags().StringVarP(&semverArgs.tag, "tag", "t", "", "Include commits after this tag")
 }
 
-func determineNextVersion(repoPath string, tag string) {
-	latestVersion := getLatestVersion(repoPath)
+func determineNextVersion(repoPath string, tag string) string {
+	currentVersion, vPrefix := getCurrentVersion(repoPath)
 
-	changes, err := fetchCommitMessages(repoPath, tag)
+	commits, err := vcs.FetchCommitMessages(repoPath, tag)
 	if err != nil {
 		panic(err)
 	}
-	types := determineTypes(changes)
-	logrus.Debugf("types: %v", types)
+	types := determineTypes(commits)
+	logrus.Debugf("commit types: %v", types)
 
-	if semver.HasMajor(types) {
-		bumpVersion(latestVersion, semver.SemverMajor)
-	} else if semver.HasMinor(types) {
-		bumpVersion(latestVersion, semver.SemverMinor)
-	} else if semver.HasPatch(types) {
-		bumpVersion(latestVersion, semver.SemverPatch)
-	} else {
-		logrus.Warnf("unable to determine next version from changes")
+	changeType := semver.DetermineChangeType(types)
+	if changeType == semver.ComponentNone {
+		logrus.Warnf("no changes detected")
+		return ""
 	}
-}
 
-func bumpVersion(version string, component semver.SemverComponent) string {
-	logrus.Debugf("bumping %v version", component)
-	components := strings.Split(version, ".")
-	switch component {
-	case semver.SemverMajor:
-		components[0] = bump(components[0])
-		components[1] = "0"
-		components[2] = "0"
-		break
-
-	case semver.SemverMinor:
-		components[1] = bump(components[1])
-		components[2] = "0"
-		break
-
-	case semver.SemverPatch:
-		components[2] = bump(components[2])
-		break
+	nextVersion := semver.BumpVersion(currentVersion, changeType)
+	if vPrefix {
+		nextVersion = "v" + nextVersion
 	}
-	nextVersion := strings.Join(components, ".")
-	logrus.Infof("next version: %s", nextVersion)
 	return nextVersion
 }
 
-func bump(v string) string {
-	num, _ := strconv.Atoi(v)
-	return strconv.Itoa(num + 1)
-}
-
-func getLatestVersion(repoPath string) string {
+func getCurrentVersion(repoPath string) (latestVersion string, vPrefix bool) {
 	latestVersion, err := vcs.GetLatestTag(repoPath)
 	if err != nil {
 		panic(err)
 	}
 	if strings.HasPrefix(latestVersion, "v") {
 		latestVersion = strings.TrimPrefix(latestVersion, "v")
+		vPrefix = true
 	}
 	logrus.Tracef("latest version: %s", latestVersion)
-	return latestVersion
+	return latestVersion, vPrefix
 }
 
-func fetchCommitMessages(repoPath string, tag string) ([]string, error) {
-	if tag == "" {
-		latestTag, err := vcs.GetLatestTag(repoPath)
-		if err != nil {
-			return nil, err
-		}
-		logrus.Debugf("latest tag: %s", latestTag)
-		tag = latestTag
-	}
-	commits, err := vcs.FetchCommitsAfter(repoPath, tag)
-	if err != nil {
-		return nil, err
-	}
-	logrus.Tracef("commits: %v", commits)
-	return commits, nil
-}
-
-func determineTypes(changes []string) []string {
+func determineTypes(commits []string) []string {
 	types := make(map[string]bool)
-	for _, change := range changes {
-		parts := strings.Split(change, ":")
+	for _, commit := range commits {
+		parts := strings.Split(commit, ":")
 		if len(parts) < 2 {
 			continue
 		}
 		prefix := strings.TrimSpace(parts[0])
+		if strings.HasSuffix(prefix, "!") {
+			prefix = "BREAKING CHANGE"
+		}
 		if strings.Contains(prefix, "(") {
 			prefix = strings.Split(prefix, "(")[0]
 		}
