@@ -23,6 +23,7 @@ var listCmd = &cobra.Command{
 	Short: "List changes for a given version",
 	Long: `Lists changes for a given version in a changelog file.
 If no version is specified, the most recent version is used.`,
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		printChanges(listArgs.changelogFile, listArgs.version, listArgs.includeHeader, func(s string) { fmt.Println(s) })
 	},
