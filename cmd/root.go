@@ -11,6 +11,7 @@ import (
 
 var rootArgs struct {
 	logLevel string
+	quiet    bool
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -24,6 +25,7 @@ func init() {
 	cobra.OnInitialize(initLogging)
 
 	rootCmd.PersistentFlags().StringVarP(&rootArgs.logLevel, "log-level", "l", "debug", "Log level (debug, info, warn, error, fatal, panic)")
+	rootCmd.PersistentFlags().BoolVarP(&rootArgs.quiet, "quiet", "q", false, "Whether to disable logging")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -37,10 +39,16 @@ func Execute() {
 
 func initLogging() {
 	if rootArgs.logLevel != "" {
-		ll, err := logrus.ParseLevel(rootArgs.logLevel)
-		if err != nil {
-			ll = logrus.DebugLevel
+		var logLevel logrus.Level
+		if rootArgs.quiet {
+			logLevel = logrus.PanicLevel
+		} else {
+			ll, err := logrus.ParseLevel(rootArgs.logLevel)
+			if err != nil {
+				ll = logrus.DebugLevel
+			}
+			logLevel = ll
 		}
-		logrus.SetLevel(ll)
+		logrus.SetLevel(logLevel)
 	}
 }
