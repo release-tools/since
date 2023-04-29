@@ -5,11 +5,11 @@ Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 package cmd
 
 import (
+	"github.com/outofcoffee/changelog-parser/convcommits"
 	"github.com/outofcoffee/changelog-parser/semver"
 	"github.com/outofcoffee/changelog-parser/vcs"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/maps"
 	"os"
 	"strings"
 )
@@ -72,7 +72,7 @@ func getCurrentVersion(repoPath string, orderBy vcs.TagOrderBy) (version string,
 }
 
 func getNextVersion(currentVersion string, vPrefix bool, commits []string) string {
-	types := determineTypes(commits)
+	types := convcommits.DetermineTypes(commits)
 	logrus.Debugf("commit types: %v", types)
 
 	changeType := semver.DetermineChangeType(types)
@@ -86,25 +86,4 @@ func getNextVersion(currentVersion string, vPrefix bool, commits []string) strin
 		nextVersion = "v" + nextVersion
 	}
 	return nextVersion
-}
-
-func determineTypes(commits []string) []string {
-	types := make(map[string]bool)
-	for _, commit := range commits {
-		parts := strings.Split(commit, ":")
-		if len(parts) < 2 {
-			continue
-		}
-		prefix := strings.TrimSpace(parts[0])
-		if strings.HasSuffix(prefix, "!") {
-			prefix = "BREAKING CHANGE"
-		}
-		if strings.Contains(prefix, "(") {
-			prefix = strings.Split(prefix, "(")[0]
-		}
-		if !types[prefix] {
-			types[prefix] = true
-		}
-	}
-	return maps.Keys(types)
 }
