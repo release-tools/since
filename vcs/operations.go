@@ -5,11 +5,34 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/rogpeppe/go-internal/semver"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
+type TagOrderBy string
+
+const (
+	TagOrderAlphabetical TagOrderBy = "alphabetical"
+	TagOrderCommitDate   TagOrderBy = "commit-date"
+	TagOrderSemver       TagOrderBy = "semver"
+)
+
+var latestTag string
+
 // GetLatestTag returns the latest tag in the repository.
-func GetLatestTag(repoPath string) (string, error) {
+func GetLatestTag(repoPath string, orderBy TagOrderBy) (string, error) {
+	if latestTag == "" {
+		tag, err := getLatestTag(repoPath, orderBy)
+		if err != nil {
+			return "", err
+		}
+		latestTag = tag
+	}
+	return latestTag, nil
+}
+
+func getLatestTag(repoPath string, orderBy TagOrderBy) (string, error) {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return "", err
@@ -18,21 +41,58 @@ func GetLatestTag(repoPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var latestTag string
+
+	var latestTag *plumbing.Reference
+	var latestCommit *object.Commit
 	err = tags.ForEach(func(t *plumbing.Reference) error {
-		latestTag = t.Name().Short()
+		latest := false
+		if latestTag == nil {
+			latest = true
+
+		} else {
+			switch orderBy {
+			case TagOrderAlphabetical:
+				latest = t.Name().Short() > latestTag.Name().Short()
+				break
+
+			case TagOrderCommitDate:
+				commit, err := r.CommitObject(t.Hash())
+				if err != nil {
+					logrus.Tracef("failed to get commit object for tag %s: %v", t.Name().Short(), err)
+					return nil
+				}
+				if latestCommit == nil || commit.Committer.When.After(latestCommit.Committer.When) {
+					latestCommit = commit
+					latest = true
+				}
+				break
+
+			case TagOrderSemver:
+				latest = semver.Compare(t.Name().Short(), latestTag.Name().Short()) > 0
+
+			default:
+				panic("unknown tag order by: " + orderBy)
+			}
+		}
+
+		if latest {
+			latestTag = t
+		}
 		return nil
 	})
 	if err != nil {
 		return "", err
 	}
-	return latestTag, nil
+
+	tagName := latestTag.Name().Short()
+	logrus.Tracef("latest tag ordered by %s: %s", orderBy, tagName)
+	return tagName, nil
 }
 
 // FetchCommitMessages returns a slice of commit messages after the given tag.
-func FetchCommitMessages(repoPath string, tag string) ([]string, error) {
+func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]string, error) {
 	if tag == "" {
-		latestTag, err := GetLatestTag(repoPath)
+		latestTag, err := GetLatestTag(repoPath, orderBy)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +130,7 @@ func fetchCommitsAfter(repoPath string, tag string) ([]string, error) {
 		if c.Hash == afterTagCommit.Hash {
 			return storer.ErrStop
 		}
-		commitMessages = append(commitMessages, c.Message)
+		commitMessages = append(commitMessages, strings.TrimSpace(c.Message))
 		return nil
 	})
 	if err != nil {
