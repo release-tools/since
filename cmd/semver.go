@@ -55,6 +55,23 @@ func determineNextVersion(repoPath string, tag string, orderBy vcs.TagOrderBy) s
 	if err != nil {
 		panic(err)
 	}
+	return getNextVersion(currentVersion, vPrefix, commits)
+}
+
+func getCurrentVersion(repoPath string, orderBy vcs.TagOrderBy) (version string, vPrefix bool) {
+	version, err := vcs.GetLatestTag(repoPath, orderBy)
+	if err != nil {
+		panic(err)
+	}
+	if strings.HasPrefix(version, "v") {
+		version = strings.TrimPrefix(version, "v")
+		vPrefix = true
+	}
+	logrus.Tracef("current version: %s", version)
+	return version, vPrefix
+}
+
+func getNextVersion(currentVersion string, vPrefix bool, commits []string) string {
 	types := determineTypes(commits)
 	logrus.Debugf("commit types: %v", types)
 
@@ -69,19 +86,6 @@ func determineNextVersion(repoPath string, tag string, orderBy vcs.TagOrderBy) s
 		nextVersion = "v" + nextVersion
 	}
 	return nextVersion
-}
-
-func getCurrentVersion(repoPath string, orderBy vcs.TagOrderBy) (version string, vPrefix bool) {
-	version, err := vcs.GetLatestTag(repoPath, orderBy)
-	if err != nil {
-		panic(err)
-	}
-	if strings.HasPrefix(version, "v") {
-		version = strings.TrimPrefix(version, "v")
-		vPrefix = true
-	}
-	logrus.Tracef("current version: %s", version)
-	return version, vPrefix
 }
 
 func determineTypes(commits []string) []string {
