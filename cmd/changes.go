@@ -8,6 +8,8 @@ import (
 	"github.com/outofcoffee/since/convcommits"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
+	"sort"
 )
 
 var changesArgs struct {
@@ -47,9 +49,13 @@ func listCommits(repoPath string, tag string, orderBy vcs.TagOrderBy, printer fu
 func printCommits(commits []string, printer func(s string)) {
 	categorised := convcommits.CategoriseByType(commits)
 
-	for prefix, category := range categorised {
-		printer("\n### " + prefix + "\n")
-		for _, commit := range category {
+	categories := maps.Keys(categorised)
+	sort.Strings(categories)
+
+	for _, category := range categories {
+		printer("\n### " + category + "\n")
+		commits := categorised[category]
+		for _, commit := range commits {
 			printer("- " + commit)
 		}
 	}
