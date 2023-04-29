@@ -16,9 +16,9 @@ var rootArgs struct {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "changelog-parser",
-	Short: "Parse changelog files",
-	Long:  `Parse changelog file and return changes for a given version.`,
+	Use:   "since",
+	Short: "Parse git history and changelog files",
+	Long:  `Parses git logs and changelog files and lists changes for a given version.`,
 }
 
 func init() {

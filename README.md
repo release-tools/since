@@ -1,17 +1,19 @@
-# changelog-parser
+# since
 
-Parse changelog file and return changes for a given version.
+- Parses git log and generates changelog entries.
+- Calculates the next version based on semver and conventional commits.
+- Parses changelog files and extract changes for a given version.
 
 ## Installation
 
 ```bash
-go install github.com/outofcoffee/changelog-parser
+go install github.com/outofcoffee/since
 ```
 
 ## Usage
 
 ```bash
-changelog-parser extract [--changelog CHANGELOG.md] [--version 0.1.0]
+since extract [--changelog CHANGELOG.md] [--version 0.1.0]
 ```
 
 ## Example
@@ -28,7 +30,7 @@ $ cat CHANGELOG.md
 ### Added
 - feat: another change.
 
-$ changelog-parser extract --version 0.1.0
+$ since extract --version 0.1.0
 ## [0.1.0] - 2023-03-04
 ### Added
 - feat: another change.

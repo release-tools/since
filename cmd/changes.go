@@ -5,8 +5,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/outofcoffee/changelog-parser/convcommits"
-	"github.com/outofcoffee/changelog-parser/vcs"
+	"github.com/outofcoffee/since/convcommits"
+	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
 )
 

@@ -1,4 +1,4 @@
-module github.com/outofcoffee/changelog-parser
+module github.com/outofcoffee/since
 
 go 1.20
 

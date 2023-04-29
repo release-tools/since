@@ -5,9 +5,9 @@ Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 package cmd
 
 import (
-	"github.com/outofcoffee/changelog-parser/convcommits"
-	"github.com/outofcoffee/changelog-parser/semver"
-	"github.com/outofcoffee/changelog-parser/vcs"
+	"github.com/outofcoffee/since/convcommits"
+	"github.com/outofcoffee/since/semver"
+	"github.com/outofcoffee/since/vcs"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
