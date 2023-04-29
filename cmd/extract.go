@@ -11,30 +11,30 @@ import (
 	"strings"
 )
 
-var listArgs struct {
+var extractArgs struct {
 	version       string
 	changelogFile string
 	includeHeader bool
 }
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List changes for a given version",
-	Long: `Lists changes for a given version in a changelog file.
+// extractCmd represents the extract command
+var extractCmd = &cobra.Command{
+	Use:   "extract",
+	Short: "Extract changes for a given version",
+	Long: `Extracts changes for a given version in a changelog file.
 If no version is specified, the most recent version is used.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		printChanges(listArgs.changelogFile, listArgs.version, listArgs.includeHeader, func(s string) { fmt.Println(s) })
+		printChanges(extractArgs.changelogFile, extractArgs.version, extractArgs.includeHeader, func(s string) { fmt.Println(s) })
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(extractCmd)
 
-	listCmd.Flags().StringVarP(&listArgs.version, "version", "v", "", "Version to parse changelog for")
-	listCmd.Flags().StringVarP(&listArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
-	listCmd.Flags().BoolVar(&listArgs.includeHeader, "header", false, "whether to include the version header in the output")
+	extractCmd.Flags().StringVarP(&extractArgs.version, "version", "v", "", "Version to parse changelog for")
+	extractCmd.Flags().StringVarP(&extractArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
+	extractCmd.Flags().BoolVar(&extractArgs.includeHeader, "header", false, "whether to include the version header in the output")
 }
 
 func printChanges(changelogFile string, version string, includeHeader bool, printer func(s string)) {

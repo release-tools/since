@@ -11,7 +11,7 @@ go install github.com/outofcoffee/changelog-parser
 ## Usage
 
 ```bash
-changelog-parser list [--changelog CHANGELOG.md] [--version 0.1.0]
+changelog-parser extract [--changelog CHANGELOG.md] [--version 0.1.0]
 ```
 
 ## Example
@@ -28,7 +28,7 @@ $ cat CHANGELOG.md
 ### Added
 - feat: another change.
 
-$ changelog-parser list --version 0.1.0
+$ changelog-parser extract --version 0.1.0
 ## [0.1.0] - 2023-03-04
 ### Added
 - feat: another change.
