@@ -1,0 +1,68 @@
+project_name: since
+before:
+  hooks:
+    - go mod tidy -compat=1.20
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+archives:
+  - replacements:
+      darwin: macOS
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+brews:
+  -
+    # Name template of the recipe
+    # Default to project name
+    name: since
+
+    # GOARM to specify which 32-bit arm version to use if there are multiple versions
+    # from the build section. Brew formulas support atm only one 32-bit version.
+    # Default is 6 for all artifacts or each id if there a multiple versions.
+    goarm: 6
+
+    # NOTE: make sure the url_template, the token and given repo (github or gitlab) owner and name are from the
+    # same kind. We will probably unify this in the next major version like it is done with scoop.
+
+    # GitHub/GitLab repository to push the formula to
+    # Gitea is not supported yet, but the support coming
+    tap:
+      owner: outofcoffee
+      name: homebrew-since
+
+    # Git author used to commit to the repository.
+    # Defaults are shown.
+    commit_author:
+      name: releasebot
+      email: outofcoffee@gmail.com
+
+    # Your app's homepage.
+    # Default is empty.
+    homepage: "https://github.com/outofcoffee/since"
+
+    # Template of your app's description.
+    # Default is empty.
+    description: "Parses git log and generates changelog entries. Calculates the next version based on semver and conventional commits. Parses changelog files and extract changes for a given version."
