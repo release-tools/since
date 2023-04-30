@@ -22,8 +22,8 @@ var updateArgs struct {
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Print updated changelog based on changes since last release",
-	Long: `Generates a new changelog files based on an existing file,
-using the changes since the last release in the given project repository.`,
+	Long: `Generates a new changelog based on an existing changelog file,
+using the commits since the last release.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		updated := getUpdatedChangelog(updateArgs.changelogFile, vcs.TagOrderBy(updateArgs.orderBy), updateArgs.repoPath)

@@ -26,8 +26,8 @@ go install github.com/outofcoffee/since
 
 ### `changelog update`
 
-Generates a new changelog files based on an existing file,
-using the changes since the last release in the given project repository.
+Generates a new changelog based on an existing changelog file,
+using the commits since the last release.
 
 ```bash
 Usage:
