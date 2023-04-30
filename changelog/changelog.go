@@ -98,6 +98,8 @@ func RenderCommits(commits []string, groupIntoSections bool) string {
 	for _, category := range categories {
 		output += "### " + category + "\n"
 		items := categorised[category]
+		sort.Strings(items)
+
 		for _, commit := range items {
 			output += "- " + commit + "\n"
 		}

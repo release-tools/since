@@ -45,9 +45,9 @@ func TestRenderCommits(t *testing.T) {
 - feat: foo
 
 ### Changed
-- ci: baz
-- chore: qux
 - build: quux
+- chore: qux
+- ci: baz
 
 ### Fixed
 - fix: bar`,
