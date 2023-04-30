@@ -4,6 +4,7 @@ Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 package cmd
 
 import (
+	"fmt"
 	"github.com/outofcoffee/since/changelog"
 	"github.com/outofcoffee/since/semver"
 	"github.com/outofcoffee/since/vcs"
@@ -39,35 +40,28 @@ func init() {
 }
 
 func getUpdatedChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) string {
-	changes, err := vcs.FetchCommitMessages(repoPath, "", orderBy)
-	if err != nil {
-		panic(err)
-	}
-	rendered := changelog.RenderCommits(changes, true)
-
-	lines, err := changelog.ReadFile(changelogFile)
-	if err != nil {
-		panic(err)
-	}
-
-	currentVersion, _ := semver.GetCurrentVersion(repoPath, orderBy)
-
 	commits, err := vcs.FetchCommitMessages(repoPath, "", orderBy)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
 	}
-	nextVersion := semver.GetNextVersion(currentVersion, false, commits)
+	rendered := changelog.RenderCommits(commits, true)
 
+	currentVersion, _ := semver.GetCurrentVersion(repoPath, orderBy)
+	nextVersion := semver.GetNextVersion(currentVersion, false, commits)
 	if nextVersion == "" {
 		panic("Could not determine next version")
 	}
 	versionHeader := "## [" + nextVersion + "] - " + time.Now().UTC().Format("2006-01-02") + "\n"
 
+	lines, err := changelog.ReadFile(changelogFile)
+	if err != nil {
+		panic(fmt.Errorf("failed to read changelog file: %s: %v", changelogFile, err))
+	}
 	sections, err := changelog.SplitIntoSections(lines)
 	if err != nil {
 		panic(err)
 	}
-	output := sections.Boilerplate + versionHeader + rendered + sections.Body
 
+	output := sections.Boilerplate + versionHeader + rendered + sections.Body
 	return output
 }
