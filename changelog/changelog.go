@@ -94,7 +94,7 @@ func RenderCommits(commits []string) string {
 	return output
 }
 
-func SplitIntoSections(lines []string) ChangelogSections {
+func SplitIntoSections(lines []string) (ChangelogSections, error) {
 	var boilerplate string
 
 	// find the first h2
@@ -116,16 +116,16 @@ func SplitIntoSections(lines []string) ChangelogSections {
 		}
 	}
 	if firstH2 == 0 {
-		panic("could not find h2 in changelog")
+		return ChangelogSections{}, fmt.Errorf("could not find h2 in changelog")
 	}
 
 	var body string
 	for _, line := range lines[firstH2:] {
 		body += line + "\n"
 	}
-
-	return ChangelogSections{
+	sections := ChangelogSections{
 		Boilerplate: boilerplate,
 		Body:        body,
 	}
+	return sections, nil
 }

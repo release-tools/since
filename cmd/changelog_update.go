@@ -63,7 +63,10 @@ func getUpdatedChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath 
 	}
 	versionHeader := "## [" + nextVersion + "] - " + time.Now().UTC().Format("2006-01-02") + "\n"
 
-	sections := changelog.SplitIntoSections(lines)
+	sections, err := changelog.SplitIntoSections(lines)
+	if err != nil {
+		panic(err)
+	}
 	output := sections.Boilerplate + versionHeader + rendered + sections.Body
 
 	return output
