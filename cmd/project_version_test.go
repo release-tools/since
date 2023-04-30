@@ -1,6 +1,9 @@
 package cmd
 
-import "testing"
+import (
+	"github.com/outofcoffee/since/semver"
+	"testing"
+)
 
 func Test_getNextVersion(t *testing.T) {
 	type args struct {
@@ -70,7 +73,7 @@ func Test_getNextVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getNextVersion(tt.args.currentVersion, tt.args.vPrefix, tt.args.commits); got != tt.want {
+			if got := semver.GetNextVersion(tt.args.currentVersion, tt.args.vPrefix, tt.args.commits); got != tt.want {
 				t.Errorf("getNextVersion() = %v, want %v", got, tt.want)
 			}
 		})

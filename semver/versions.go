@@ -1,6 +1,8 @@
 package semver
 
 import (
+	"github.com/outofcoffee/since/convcommits"
+	"github.com/outofcoffee/since/vcs"
 	"github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
@@ -42,8 +44,8 @@ func containsIgnoreCase(orig []string, search ...string) bool {
 	return false
 }
 
-// BumpVersion bumps the version based on the component.
-func BumpVersion(version string, component Component) string {
+// bumpVersion bumps the version based on the component.
+func bumpVersion(version string, component Component) string {
 	logrus.Debugf("bumping %v version", component)
 	components := strings.Split(version, ".")
 
@@ -71,4 +73,36 @@ func BumpVersion(version string, component Component) string {
 func bump(v string) string {
 	num, _ := strconv.Atoi(v)
 	return strconv.Itoa(num + 1)
+}
+
+// GetCurrentVersion gets the current version from the repo.
+func GetCurrentVersion(repoPath string, orderBy vcs.TagOrderBy) (version string, vPrefix bool) {
+	version, err := vcs.GetLatestTag(repoPath, orderBy)
+	if err != nil {
+		panic(err)
+	}
+	if strings.HasPrefix(version, "v") {
+		version = strings.TrimPrefix(version, "v")
+		vPrefix = true
+	}
+	logrus.Tracef("current version: %s", version)
+	return version, vPrefix
+}
+
+// GetNextVersion gets the next version based on the current version and the commit messages.
+func GetNextVersion(currentVersion string, vPrefix bool, commits []string) string {
+	types := convcommits.DetermineTypes(commits)
+	logrus.Debugf("commit types: %v", types)
+
+	changeType := DetermineChangeType(types)
+	if changeType == ComponentNone {
+		logrus.Warnf("no changes detected")
+		return ""
+	}
+
+	nextVersion := bumpVersion(currentVersion, changeType)
+	if vPrefix {
+		nextVersion = "v" + nextVersion
+	}
+	return nextVersion
 }

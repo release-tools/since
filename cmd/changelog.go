@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var changelogArgs struct {
+	changelogFile string
+}
+
 // changelogCmd represents the changelog command
 var changelogCmd = &cobra.Command{
 	Use:   "changelog",
@@ -16,4 +20,6 @@ var changelogCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(changelogCmd)
+
+	changelogCmd.PersistentFlags().StringVarP(&changelogArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
 }
