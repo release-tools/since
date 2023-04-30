@@ -21,7 +21,7 @@ jobs:
 
       - name: Dryrun changelog
         run: |
-          ./since > /tmp/changes.md
+          ./since project changes > /tmp/changes.md
           cat /tmp/changes.md
 
       - name: Dry run
