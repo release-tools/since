@@ -51,7 +51,7 @@ brews:
     # Gitea is not supported yet, but the support coming
     tap:
       owner: outofcoffee
-      name: homebrew-since
+      name: homebrew-tap
 
     # Git author used to commit to the repository.
     # Defaults are shown.
