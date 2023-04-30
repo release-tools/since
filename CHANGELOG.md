@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.0] - 2023-04-30
+### Added
+- feat: groups changes into sections.
+- feat: adds changelog update command.
+- feat: adds command to list changes in repo since tag.
+
+### Changed
+- ci: adds goreleaser config and workflow step.
+- refactor: organises commands under 'project' and 'changelog'.
+- refactor: renames list command to extract.
+- build: renames module.
+
+### Fixed
+- fix: only fetch commits once when updating changelog.
+- fix: sorts commit categories before printing.
+
 ## [0.5.0] - 2023-04-28
 ### Added
 - feat: determine semver based on git log.
