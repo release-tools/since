@@ -103,7 +103,7 @@ func RenderCommits(commits []string, groupIntoSections bool) string {
 		}
 		output += "\n"
 	}
-	return output
+	return strings.TrimSpace(output)
 }
 
 // SplitIntoSections takes a slice of changelog lines and splits it into
@@ -139,7 +139,7 @@ func SplitIntoSections(lines []string) (ChangelogSections, error) {
 	}
 	sections := ChangelogSections{
 		Boilerplate: boilerplate,
-		Body:        body,
+		Body:        strings.TrimSpace(body),
 	}
 	return sections, nil
 }

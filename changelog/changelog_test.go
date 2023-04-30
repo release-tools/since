@@ -33,9 +33,7 @@ func TestRenderCommits(t *testing.T) {
 - feat: foo
 
 ### fix
-- fix: bar
-
-`,
+- fix: bar`,
 		},
 		{
 			name: "group commits",
@@ -52,9 +50,7 @@ func TestRenderCommits(t *testing.T) {
 - build: quux
 
 ### Fixed
-- fix: bar
-
-`,
+- fix: bar`,
 		},
 	}
 	for _, tt := range tests {
@@ -91,7 +87,7 @@ func TestSplitIntoSections(t *testing.T) {
 			},
 			want: ChangelogSections{
 				Boilerplate: "# Change Log\n\n",
-				Body:        "## [0.1.0]\n### feat\n- feat: foo\n\n### fix\n- fix: bar\n",
+				Body:        "## [0.1.0]\n### feat\n- feat: foo\n\n### fix\n- fix: bar",
 			},
 		},
 	}

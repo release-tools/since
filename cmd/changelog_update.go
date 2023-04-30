@@ -62,6 +62,6 @@ func getUpdatedChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath 
 		panic(err)
 	}
 
-	output := sections.Boilerplate + versionHeader + rendered + sections.Body
+	output := sections.Boilerplate + versionHeader + rendered + "\n\n" + sections.Body
 	return output
 }
