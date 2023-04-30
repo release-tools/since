@@ -130,11 +130,22 @@ func fetchCommitsAfter(repoPath string, tag string) ([]string, error) {
 		if c.Hash == afterTagCommit.Hash {
 			return storer.ErrStop
 		}
-		commitMessages = append(commitMessages, strings.TrimSpace(c.Message))
+		message := getShortMessage(c.Message)
+		commitMessages = append(commitMessages, message)
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 	return commitMessages, nil
+}
+
+func getShortMessage(message string) string {
+	var short string
+	if strings.Contains(message, "\n") {
+		short = strings.Split(message, "\n")[0]
+	} else {
+		short = message
+	}
+	return strings.TrimSpace(short)
 }
