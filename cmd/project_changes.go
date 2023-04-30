@@ -4,6 +4,7 @@ Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 package cmd
 
 import (
+	"fmt"
 	"github.com/outofcoffee/since/changelog"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
@@ -20,7 +21,7 @@ from the most recent tag. Lists the commits categorised by their type.`,
 		if err != nil {
 			panic(err)
 		}
-		cmd.Println(changes)
+		fmt.Println(changes)
 	},
 }
 

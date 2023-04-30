@@ -27,7 +27,7 @@ using the changes since the last release in the given project repository.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		updated := getUpdatedChangelog(updateArgs.changelogFile, vcs.TagOrderBy(updateArgs.orderBy), updateArgs.repoPath)
-		cmd.Println(updated)
+		fmt.Println(updated)
 	},
 }
 

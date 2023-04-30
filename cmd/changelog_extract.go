@@ -4,6 +4,7 @@ Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 package cmd
 
 import (
+	"fmt"
 	"github.com/outofcoffee/since/changelog"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ If no version is specified, the most recent version is used.`,
 		if err != nil {
 			panic(err)
 		}
-		cmd.Println(changes)
+		fmt.Println(changes)
 	},
 }
 

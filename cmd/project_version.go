@@ -5,6 +5,7 @@ Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 package cmd
 
 import (
+	"fmt"
 	"github.com/outofcoffee/since/semver"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
@@ -31,7 +32,7 @@ conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
 		if version == "" {
 			os.Exit(1)
 		}
-		cmd.Println(version)
+		fmt.Println(version)
 	},
 }
 
