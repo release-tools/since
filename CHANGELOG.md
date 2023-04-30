@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.1] - 2023-04-30
+### Changed
+- build: ignores binary name.
+- ci: updates dryrun changelog command.
+- ci: replaces deprecated goreleaser flag.
+
 ## [0.6.0] - 2023-04-30
 ### Added
 - feat: groups changes into sections.
