@@ -115,6 +115,29 @@ Global Flags:
   -t, --tag string         Include commits after this tag
 ```
 
+### `project release`
+
+Generates a new changelog based on an existing changelog file,
+using the commits since the last release.
+
+The changelog is then committed and tagged with the new version.
+
+```bash
+Usage:
+  since project release [flags]
+
+Flags:
+  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
+  -h, --help               help for release
+
+Global Flags:
+  -g, --git-repo string    Path to git repository (default ".")
+  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+  -q, --quiet              Disable logging (useful for scripting)
+  -t, --tag string         Include commits after this tag
+```
+
 ## Example
 
 ```bash
