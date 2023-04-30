@@ -7,7 +7,8 @@ import (
 
 func TestRenderCommits(t *testing.T) {
 	type args struct {
-		commits []string
+		groupIntoSections bool
+		commits           []string
 	}
 	tests := []struct {
 		name string
@@ -17,14 +18,16 @@ func TestRenderCommits(t *testing.T) {
 		{
 			name: "no commits",
 			args: args{
-				commits: []string{},
+				commits:           []string{},
+				groupIntoSections: false,
 			},
 			want: "",
 		},
 		{
 			name: "print commits",
 			args: args{
-				commits: []string{"feat: foo", "fix: bar"},
+				commits:           []string{"feat: foo", "fix: bar"},
+				groupIntoSections: false,
 			},
 			want: `### feat
 - feat: foo
@@ -34,10 +37,29 @@ func TestRenderCommits(t *testing.T) {
 
 `,
 		},
+		{
+			name: "group commits",
+			args: args{
+				commits:           []string{"feat: foo", "fix: bar", "ci: baz", "chore: qux", "build: quux"},
+				groupIntoSections: true,
+			},
+			want: `### Added
+- feat: foo
+
+### Changed
+- ci: baz
+- chore: qux
+- build: quux
+
+### Fixed
+- fix: bar
+
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := RenderCommits(tt.args.commits); got != tt.want {
+			if got := RenderCommits(tt.args.commits, tt.args.groupIntoSections); got != tt.want {
 				t.Errorf("RenderCommits() got = %v, want %v", got, tt.want)
 			}
 		})

@@ -43,7 +43,7 @@ func getUpdatedChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath 
 	if err != nil {
 		panic(err)
 	}
-	rendered := changelog.RenderCommits(changes)
+	rendered := changelog.RenderCommits(changes, true)
 
 	lines, err := changelog.ReadFile(changelogFile)
 	if err != nil {

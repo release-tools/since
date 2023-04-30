@@ -15,6 +15,15 @@ type ChangelogSections struct {
 	Body        string
 }
 
+var sectionMap map[string][]string
+
+func init() {
+	sectionMap = make(map[string][]string)
+	sectionMap["Added"] = []string{"feat"}
+	sectionMap["Fixed"] = []string{"fix"}
+	sectionMap["Changed"] = []string{"build", "chore", "ci", "docs", "refactor", "style", "test"}
+}
+
 // ParseChangelog loads a changelog file at the given path and returns a slice of strings containing changelog entries
 // from the specified version. If no version is specified, the most recent is used.
 func ParseChangelog(path string, version string, includeHeader bool) ([]string, error) {
@@ -76,8 +85,11 @@ func readChanges(lines []string, version string, includeHeader bool) []string {
 
 // RenderCommits takes a slice of commits and returns a markdown-formatted string,
 // including the category header.
-func RenderCommits(commits []string) string {
+func RenderCommits(commits []string, groupIntoSections bool) string {
 	categorised := convcommits.CategoriseByType(commits)
+	if groupIntoSections {
+		categorised = groupBySection(categorised)
+	}
 
 	categories := maps.Keys(categorised)
 	sort.Strings(categories)
@@ -94,6 +106,8 @@ func RenderCommits(commits []string) string {
 	return output
 }
 
+// SplitIntoSections takes a slice of changelog lines and splits it into
+// boilerplate and body sections.
 func SplitIntoSections(lines []string) (ChangelogSections, error) {
 	var boilerplate string
 
@@ -128,4 +142,37 @@ func SplitIntoSections(lines []string) (ChangelogSections, error) {
 		Body:        body,
 	}
 	return sections, nil
+}
+
+// groupBySection maps the commit prefixes to sections.
+func groupBySection(input map[string][]string) map[string][]string {
+	output := make(map[string][]string)
+	for prefix, commits := range input {
+		prefix = mapTypeToSection(prefix)
+
+		existing := output[prefix]
+		commits = append(existing, commits...)
+		output[prefix] = commits
+	}
+	return output
+}
+
+func mapTypeToSection(prefix string) string {
+	mapped := false
+	for section, types := range sectionMap {
+		for _, t := range types {
+			if prefix == t {
+				prefix = section
+				mapped = true
+				break
+			}
+		}
+		if mapped {
+			break
+		}
+	}
+	if !mapped {
+		prefix = "Other"
+	}
+	return prefix
 }

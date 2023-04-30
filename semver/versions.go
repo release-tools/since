@@ -17,31 +17,36 @@ const (
 	ComponentNone  Component = "none"
 )
 
-// DetermineChangeType determines the type of change based on the commit messages.
-func DetermineChangeType(types []string) Component {
-	if containsIgnoreCase(types, "breaking change") {
-		return ComponentMajor
-	} else if containsIgnoreCase(types, "feat") {
-		return ComponentMinor
-	} else if containsIgnoreCase(types, "build", "chore", "ci", "docs", "fix", "refactor", "style", "test") {
-		return ComponentPatch
-	} else {
-		logrus.Warnf("unable to determine next version from changes")
-		return ComponentNone
+// GetCurrentVersion gets the current version from the repo.
+func GetCurrentVersion(repoPath string, orderBy vcs.TagOrderBy) (version string, vPrefix bool) {
+	version, err := vcs.GetLatestTag(repoPath, orderBy)
+	if err != nil {
+		panic(err)
 	}
+	if strings.HasPrefix(version, "v") {
+		version = strings.TrimPrefix(version, "v")
+		vPrefix = true
+	}
+	logrus.Tracef("current version: %s", version)
+	return version, vPrefix
 }
 
-// containsIgnoreCase returns true if the orig slice contains any of the search strings,
-// compared in a case-insensitive manner.
-func containsIgnoreCase(orig []string, search ...string) bool {
-	for _, o := range orig {
-		for _, s := range search {
-			if strings.ToLower(o) == strings.ToLower(s) {
-				return true
-			}
-		}
+// GetNextVersion gets the next version based on the current version and the commit messages.
+func GetNextVersion(currentVersion string, vPrefix bool, commits []string) string {
+	types := convcommits.DetermineTypes(commits)
+	logrus.Debugf("commit types: %v", types)
+
+	changeType := DetermineChangeType(types)
+	if changeType == ComponentNone {
+		logrus.Warnf("no changes detected")
+		return ""
 	}
-	return false
+
+	nextVersion := bumpVersion(currentVersion, changeType)
+	if vPrefix {
+		nextVersion = "v" + nextVersion
+	}
+	return nextVersion
 }
 
 // bumpVersion bumps the version based on the component.
@@ -75,34 +80,29 @@ func bump(v string) string {
 	return strconv.Itoa(num + 1)
 }
 
-// GetCurrentVersion gets the current version from the repo.
-func GetCurrentVersion(repoPath string, orderBy vcs.TagOrderBy) (version string, vPrefix bool) {
-	version, err := vcs.GetLatestTag(repoPath, orderBy)
-	if err != nil {
-		panic(err)
+// DetermineChangeType determines the type of change based on the commit messages.
+func DetermineChangeType(types []string) Component {
+	if containsIgnoreCase(types, "breaking change") {
+		return ComponentMajor
+	} else if containsIgnoreCase(types, "feat") {
+		return ComponentMinor
+	} else if containsIgnoreCase(types, "build", "chore", "ci", "docs", "fix", "refactor", "style", "test") {
+		return ComponentPatch
+	} else {
+		logrus.Warnf("unable to determine next version from changes")
+		return ComponentNone
 	}
-	if strings.HasPrefix(version, "v") {
-		version = strings.TrimPrefix(version, "v")
-		vPrefix = true
-	}
-	logrus.Tracef("current version: %s", version)
-	return version, vPrefix
 }
 
-// GetNextVersion gets the next version based on the current version and the commit messages.
-func GetNextVersion(currentVersion string, vPrefix bool, commits []string) string {
-	types := convcommits.DetermineTypes(commits)
-	logrus.Debugf("commit types: %v", types)
-
-	changeType := DetermineChangeType(types)
-	if changeType == ComponentNone {
-		logrus.Warnf("no changes detected")
-		return ""
+// containsIgnoreCase returns true if the orig slice contains any of the search strings,
+// compared in a case-insensitive manner.
+func containsIgnoreCase(orig []string, search ...string) bool {
+	for _, o := range orig {
+		for _, s := range search {
+			if strings.ToLower(o) == strings.ToLower(s) {
+				return true
+			}
+		}
 	}
-
-	nextVersion := bumpVersion(currentVersion, changeType)
-	if vPrefix {
-		nextVersion = "v" + nextVersion
-	}
-	return nextVersion
+	return false
 }

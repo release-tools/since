@@ -33,5 +33,5 @@ func listCommits(repoPath string, tag string, orderBy vcs.TagOrderBy) (string, e
 	if err != nil {
 		return "", err
 	}
-	return changelog.RenderCommits(commits), nil
+	return changelog.RenderCommits(commits, true), nil
 }
