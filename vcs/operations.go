@@ -149,3 +149,37 @@ func getShortMessage(message string) string {
 	}
 	return strings.TrimSpace(short)
 }
+
+// CommitChangelog commits the changelog file.
+func CommitChangelog(repoPath string, changelogFile string, version string) (hash string, err error) {
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return "", err
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		return "", err
+	}
+	_, err = w.Add(changelogFile)
+	if err != nil {
+		return "", err
+	}
+	commit, err := w.Commit("build: release "+version+".", &git.CommitOptions{})
+	if err != nil {
+		return "", err
+	}
+	return commit.String(), nil
+}
+
+// TagRelease tags the repository with the given version.
+func TagRelease(repoPath string, hash string, version string) error {
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return err
+	}
+	_, err = r.CreateTag(version, plumbing.NewHash(hash), nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}

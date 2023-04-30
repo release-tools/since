@@ -36,6 +36,12 @@ conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
 	},
 }
 
+func init() {
+	projectCmd.AddCommand(versionCmd)
+
+	versionCmd.Flags().BoolVarP(&versionArgs.current, "current", "c", false, "Just print the current version")
+}
+
 func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current bool) string {
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
 
@@ -51,10 +57,4 @@ func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current b
 		panic(err)
 	}
 	return semver.GetNextVersion(currentVersion, vPrefix, commits)
-}
-
-func init() {
-	projectCmd.AddCommand(versionCmd)
-
-	versionCmd.Flags().BoolVarP(&versionArgs.current, "current", "c", false, "Just print the current version")
 }

@@ -3,11 +3,14 @@ package changelog
 import (
 	"fmt"
 	"github.com/outofcoffee/since/convcommits"
+	"github.com/outofcoffee/since/semver"
+	"github.com/outofcoffee/since/vcs"
 	"golang.org/x/exp/maps"
 	"io"
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 type ChangelogSections struct {
@@ -177,4 +180,37 @@ func mapTypeToSection(prefix string) string {
 		prefix = "Other"
 	}
 	return prefix
+}
+
+func GetUpdatedChangelog(
+	changelogFile string,
+	orderBy vcs.TagOrderBy,
+	repoPath string,
+) (updatedVersion string, vPrefix bool, updatedChangelog string) {
+	commits, err := vcs.FetchCommitMessages(repoPath, "", orderBy)
+	if err != nil {
+		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
+	}
+	rendered := RenderCommits(commits, true)
+
+	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
+
+	// always disable vPrefix for changelog heading
+	nextVersion := semver.GetNextVersion(currentVersion, false, commits)
+	if nextVersion == "" {
+		panic("Could not determine next version")
+	}
+	versionHeader := "## [" + nextVersion + "] - " + time.Now().UTC().Format("2006-01-02") + "\n"
+
+	lines, err := ReadFile(changelogFile)
+	if err != nil {
+		panic(fmt.Errorf("failed to read changelog file: %s: %v", changelogFile, err))
+	}
+	sections, err := SplitIntoSections(lines)
+	if err != nil {
+		panic(err)
+	}
+
+	output := sections.Boilerplate + versionHeader + rendered + "\n\n" + sections.Body
+	return nextVersion, vPrefix, output
 }
