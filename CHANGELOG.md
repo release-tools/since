@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2023-04-30
+### Added
+- feat: allows printing of current version.
+
+### Changed
+- build: adds release script.
+- ci: renames tap repo.
+
+### Fixed
+- fix: removes redundant whitespace.
+- fix: prints directly to stdout.
+
 ## [0.6.1] - 2023-04-30
 ### Changed
 - build: ignores binary name.
