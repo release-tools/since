@@ -25,12 +25,12 @@ var changesCmd = &cobra.Command{
 	Long: `Reads the commit history for the current git repository, starting
 from the most recent tag. Lists the commits categorised by their type.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		listCommits(changesArgs.repoPath, changesArgs.tag, vcs.TagOrderBy(semverArgs.orderBy), func(s string) { fmt.Println(s) })
+		listCommits(changesArgs.repoPath, changesArgs.tag, vcs.TagOrderBy(changesArgs.orderBy), func(s string) { fmt.Println(s) })
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(changesCmd)
+	projectCmd.AddCommand(changesCmd)
 
 	changesCmd.Flags().StringVarP(&changesArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
 	changesCmd.Flags().StringVarP(&changesArgs.repoPath, "git-repo", "g", ".", "Path to git repository")

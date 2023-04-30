@@ -13,7 +13,7 @@ go install github.com/outofcoffee/since
 ## Usage
 
 ```bash
-since extract [--changelog CHANGELOG.md] [--version 0.1.0]
+since changelog extract [--changelog CHANGELOG.md] [--version 0.1.0]
 ```
 
 ## Example
@@ -30,7 +30,7 @@ $ cat CHANGELOG.md
 ### Added
 - feat: another change.
 
-$ since extract --version 0.1.0
+$ since changelog extract --version 0.1.0
 ## [0.1.0] - 2023-03-04
 ### Added
 - feat: another change.

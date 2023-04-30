@@ -30,7 +30,7 @@ If no version is specified, the most recent version is used.`,
 }
 
 func init() {
-	rootCmd.AddCommand(extractCmd)
+	changelogCmd.AddCommand(extractCmd)
 
 	extractCmd.Flags().StringVarP(&extractArgs.version, "version", "v", "", "Version to parse changelog for")
 	extractCmd.Flags().StringVarP(&extractArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
