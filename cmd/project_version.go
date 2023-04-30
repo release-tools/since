@@ -11,6 +11,10 @@ import (
 	"os"
 )
 
+var versionArgs struct {
+	current bool
+}
+
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -23,24 +27,33 @@ Changes influence the version according to
 conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		nextVersion := determineNextVersion(projectArgs.repoPath, projectArgs.tag, vcs.TagOrderBy(projectArgs.orderBy))
-		if nextVersion == "" {
+		version := printVersion(projectArgs.repoPath, projectArgs.tag, vcs.TagOrderBy(projectArgs.orderBy), versionArgs.current)
+		if version == "" {
 			os.Exit(1)
 		}
-		println(nextVersion)
+		cmd.Println(version)
 	},
 }
 
-func init() {
-	projectCmd.AddCommand(versionCmd)
-}
-
-func determineNextVersion(repoPath string, tag string, orderBy vcs.TagOrderBy) string {
+func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current bool) string {
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
+
+	if current {
+		if vPrefix {
+			currentVersion = "v" + currentVersion
+		}
+		return currentVersion
+	}
 
 	commits, err := vcs.FetchCommitMessages(repoPath, tag, orderBy)
 	if err != nil {
 		panic(err)
 	}
 	return semver.GetNextVersion(currentVersion, vPrefix, commits)
+}
+
+func init() {
+	projectCmd.AddCommand(versionCmd)
+
+	versionCmd.Flags().BoolVarP(&versionArgs.current, "current", "c", false, "Just print the current version")
 }
