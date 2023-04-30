@@ -41,7 +41,7 @@ Flags:
 
 Global Flags:
   -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -q, --quiet              Whether to disable logging
+  -q, --quiet              Disable logging (useful for scripting)
 ```
 
 ---
@@ -63,7 +63,7 @@ Flags:
 Global Flags:
   -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
   -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -q, --quiet              Whether to disable logging
+  -q, --quiet              Disable logging (useful for scripting)
 ```
 
 ---
@@ -84,7 +84,7 @@ Global Flags:
   -g, --git-repo string    Path to git repository (default ".")
   -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
   -o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
-  -q, --quiet              Whether to disable logging
+  -q, --quiet              Disable logging (useful for scripting)
   -t, --tag string         Include commits after this tag
 ```
 
@@ -111,7 +111,7 @@ Global Flags:
   -g, --git-repo string    Path to git repository (default ".")
   -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
   -o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
-  -q, --quiet              Whether to disable logging
+  -q, --quiet              Disable logging (useful for scripting)
   -t, --tag string         Include commits after this tag
 ```
 

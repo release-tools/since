@@ -25,7 +25,7 @@ func init() {
 	cobra.OnInitialize(initLogging)
 
 	rootCmd.PersistentFlags().StringVarP(&rootArgs.logLevel, "log-level", "l", "debug", "Log level (debug, info, warn, error, fatal, panic)")
-	rootCmd.PersistentFlags().BoolVarP(&rootArgs.quiet, "quiet", "q", false, "Whether to disable logging")
+	rootCmd.PersistentFlags().BoolVarP(&rootArgs.quiet, "quiet", "q", false, "Disable logging (useful for scripting)")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
