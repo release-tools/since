@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.1] - 2023-04-30
+### Changed
+- build: removes redundant release script.
+- docs: describes project release command.
+- docs: improves quiet flag description.
+
 ## [0.8.0] - 2023-04-30
 ### Added
 - feat: adds project release command.
