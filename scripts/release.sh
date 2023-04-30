@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+cd "$ROOT_DIR"
+
 NEXT_VERSION="$( since project version -q )"
 
 NEW_CHANGELOG="$( mktemp -t changelog.XXXXXX )" || exit 1
