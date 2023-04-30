@@ -92,7 +92,7 @@ Global Flags:
 
 ### `project version`
 
-Reads the commit history for the current git repository, startingnce project version -h
+Reads the commit history for the current git repository, starting
 from the most recent tag. Returns the next semantic version
 based on the changes.
 
@@ -115,12 +115,15 @@ Global Flags:
   -t, --tag string         Include commits after this tag
 ```
 
+---
+
 ### `project release`
 
 Generates a new changelog based on an existing changelog file,
 using the commits since the last release.
 
-The changelog is then committed and tagged with the new version.
+The changelog is then committed and a new tag is created
+with the new version.
 
 ```bash
 Usage:

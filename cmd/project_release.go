@@ -23,7 +23,8 @@ var releaseCmd = &cobra.Command{
 	Long: `Generates a new changelog based on an existing changelog file,
 using the commits since the last release.
 
-The changelog is then committed and tagged with the new version.`,
+The changelog is then committed and a new tag is created
+with the new version.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		release(releaseArgs.changelogFile, vcs.TagOrderBy(projectArgs.orderBy), projectArgs.repoPath)
