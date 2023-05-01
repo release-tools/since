@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.0] - 2023-05-01
+### Added
+- feat: adds changelog generate command.
+- feat: improves logging.
+
+### Changed
+- docs: updates license header.
+
 ## [0.8.2] - 2023-04-30
 ### Changed
 - docs: improves description of project release command.
