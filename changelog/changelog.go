@@ -21,6 +21,7 @@ import (
 	"github.com/outofcoffee/since/convcommits"
 	"github.com/outofcoffee/since/semver"
 	"github.com/outofcoffee/since/vcs"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 	"sort"
 	"strings"
@@ -63,7 +64,9 @@ func RenderCommits(commits []string, groupIntoSections bool) string {
 		}
 		output += "\n"
 	}
-	return strings.TrimSpace(output)
+	output = strings.TrimSpace(output)
+	logrus.Debugf("grouped commits into %d sections\n", len(maps.Keys(categorised)))
+	return output
 }
 
 // SplitIntoSections takes a slice of changelog lines and splits it into

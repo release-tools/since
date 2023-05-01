@@ -119,7 +119,12 @@ func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]str
 	if err != nil {
 		return nil, err
 	}
-	logrus.Tracef("commits: %v", commits)
+
+	if logrus.IsLevelEnabled(logrus.TraceLevel) {
+		logrus.Tracef("commits: %v", commits)
+	} else {
+		logrus.Debugf("fetched %d commits\n", len(commits))
+	}
 	return commits, nil
 }
 

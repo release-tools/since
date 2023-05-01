@@ -18,6 +18,7 @@ package changelog
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -28,6 +29,7 @@ func UpdateChangelog(changelogFile string, updatedChangelog string) error {
 	if err != nil {
 		panic(fmt.Errorf("failed to rename temp file: %s: %w", tempChangelog, err))
 	}
+	logrus.Debugf("updated changelog: %s", changelogFile)
 	return err
 }
 
