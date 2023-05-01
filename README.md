@@ -24,24 +24,59 @@ go install github.com/outofcoffee/since
 
 ## Usage
 
-### `changelog update`
+**Changelog** - Parse and update changelog files.
+- [generate](#changelog-generate)
+- [update](#changelog-update)
+- [extract](#changelog-extract)
+
+**Project** - List the changes since the last release in the project repository, or determine the next semantic version based on those changes.
+- [changes](#project-changes)
+- [version](#project-version)
+- [release](#project-release)
+
+---
+
+### `changelog generate`
 
 Generates a new changelog based on an existing changelog file,
+adding a new release section using the commits since the last release,
+then prints it to stdout.
+
+```bash
+Usage:
+since changelog generate [flags]
+
+Flags:
+-g, --git-repo string   Path to git repository (default ".")
+-h, --help              help for generate
+-o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+
+Global Flags:
+-c, --changelog string   Path to changelog file (default "CHANGELOG.md")
+-l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+-q, --quiet              Disable logging (useful for scripting)
+```
+
+---
+
+### `changelog update`
+
+Updates the existing changelog file with a new release section,
 using the commits since the last release.
 
 ```bash
 Usage:
-  since changelog update [flags]
+since changelog update [flags]
 
 Flags:
-  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
-  -g, --git-repo string    Path to git repository (default ".")
-  -h, --help               help for update
-  -o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+-g, --git-repo string   Path to git repository (default ".")
+-h, --help              help for update
+-o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
 
 Global Flags:
-  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -q, --quiet              Disable logging (useful for scripting)
+-c, --changelog string   Path to changelog file (default "CHANGELOG.md")
+-l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+-q, --quiet              Disable logging (useful for scripting)
 ```
 
 ---
@@ -70,22 +105,22 @@ Global Flags:
 
 ### `project changes`
 
-Reads the commit history for the current git repository, startingnce project changes -h
+Reads the commit history for the current git repository, starting
 from the most recent tag. Lists the commits categorised by their type.
 
 ```bash
 Usage:
-  since project changes [flags]
+since project changes [flags]
 
 Flags:
-  -h, --help   help for changes
+-h, --help   help for changes
 
 Global Flags:
-  -g, --git-repo string    Path to git repository (default ".")
-  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
-  -q, --quiet              Disable logging (useful for scripting)
-  -t, --tag string         Include commits after this tag
+-g, --git-repo string    Path to git repository (default ".")
+-l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+-o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+-q, --quiet              Disable logging (useful for scripting)
+-t, --tag string         Include commits after this tag
 ```
 
 ---

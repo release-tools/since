@@ -1,6 +1,7 @@
 /*
 Copyright © 2023 Pete Cornish <outofcoffee@gmail.com>
 */
+
 package cmd
 
 import (
@@ -18,17 +19,16 @@ var updateArgs struct {
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Print updated changelog based on changes since last release",
-	Long: `Generates a new changelog based on an existing changelog file,
+	Short: "Write updated changelog based on changes since last release",
+	Long: `Updates the existing changelog file with a new release section,
 using the commits since the last release.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, _, updated := changelog.GetUpdatedChangelog(
+		updateChangelog(
 			changelogArgs.changelogFile,
 			vcs.TagOrderBy(updateArgs.orderBy),
 			updateArgs.repoPath,
 		)
-		fmt.Println(updated)
 	},
 }
 
@@ -37,4 +37,13 @@ func init() {
 
 	updateCmd.Flags().StringVarP(&updateArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
 	updateCmd.Flags().StringVarP(&updateArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
+}
+
+func updateChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
+	_, _, updated := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
+
+	err := changelog.UpdateChangelog(changelogFile, updated)
+	if err != nil {
+		panic(fmt.Errorf("failed to update changelog: %w", err))
+	}
 }

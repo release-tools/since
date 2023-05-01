@@ -9,7 +9,6 @@ import (
 	"github.com/outofcoffee/since/changelog"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var releaseArgs struct {
@@ -43,10 +42,9 @@ func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
 		version = "v" + version
 	}
 
-	tempChangelog := writeTempChangelog(updatedChangelog)
-	err := os.Rename(tempChangelog, changelogFile)
+	err := changelog.UpdateChangelog(changelogFile, updatedChangelog)
 	if err != nil {
-		panic(fmt.Errorf("failed to rename temp file: %s: %w", tempChangelog, err))
+		panic(fmt.Errorf("failed to update changelog: %w", err))
 	}
 
 	hash, err := vcs.CommitChangelog(repoPath, changelogFile, version)
@@ -60,17 +58,4 @@ func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
 	}
 
 	fmt.Printf("released version %s\n", version)
-}
-
-func writeTempChangelog(updatedChangelog string) string {
-	temp, err := os.CreateTemp(os.TempDir(), "changelog*.md")
-	if err != nil {
-		panic(fmt.Errorf("failed to create temp file: %w", err))
-	}
-	_, err = temp.WriteString(updatedChangelog + "\n")
-	if err != nil {
-		panic(fmt.Errorf("failed to write to temp file: %w", err))
-	}
-	_ = temp.Close()
-	return temp.Name()
 }
