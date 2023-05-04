@@ -26,6 +26,14 @@ import (
 	"strings"
 )
 
+type ReleaseMetadata struct {
+	NewVersion string
+	OldVersion string
+	RepoPath   string
+	Sha        string
+	VPrefix    bool
+}
+
 type TagOrderBy string
 
 const (
@@ -203,4 +211,16 @@ func TagRelease(repoPath string, hash string, version string) error {
 		return err
 	}
 	return nil
+}
+
+func GetHeadSha(repoPath string) (string, error) {
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return "", err
+	}
+	head, err := r.Head()
+	if err != nil {
+		return "", err
+	}
+	return head.Hash().String(), nil
 }

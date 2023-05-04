@@ -1,0 +1,4 @@
+before:
+  - command: echo
+    args:
+      - "hello world"

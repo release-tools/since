@@ -20,8 +20,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"strings"
 )
+
+// ResolveChangelogFile returns the absolute path to the changelog file.
+func ResolveChangelogFile(dir string, fileName string) string {
+	if strings.ContainsAny(fileName, "/\\") {
+		return fileName
+	}
+	return path.Join(dir, fileName)
+}
 
 // ParseChangelog loads a changelog file at the given path and returns a slice of strings containing changelog entries
 // from the specified version. If no version is specified, the most recent is used.

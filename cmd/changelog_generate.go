@@ -37,8 +37,9 @@ adding a new release section using the commits since the last release,
 then prints it to stdout.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		changelogFile := changelog.ResolveChangelogFile(generateArgs.repoPath, changelogArgs.changelogFile)
 		generateChangelog(
-			changelogArgs.changelogFile,
+			changelogFile,
 			vcs.TagOrderBy(generateArgs.orderBy),
 			generateArgs.repoPath,
 		)
@@ -53,6 +54,6 @@ func init() {
 }
 
 func generateChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
-	_, _, updated := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
+	_, updated := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
 	fmt.Println(updated)
 }

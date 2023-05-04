@@ -146,7 +146,7 @@ func GetUpdatedChangelog(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-) (updatedVersion string, vPrefix bool, updatedChangelog string) {
+) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
 	commits, err := vcs.FetchCommitMessages(repoPath, "", orderBy)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
@@ -172,5 +172,17 @@ func GetUpdatedChangelog(
 	}
 
 	output := sections.Boilerplate + versionHeader + rendered + "\n\n" + sections.Body
-	return nextVersion, vPrefix, output
+
+	sha, err := vcs.GetHeadSha(repoPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to get head sha: %v", err))
+	}
+	metadata = vcs.ReleaseMetadata{
+		OldVersion: currentVersion,
+		NewVersion: nextVersion,
+		RepoPath:   repoPath,
+		Sha:        sha,
+		VPrefix:    vPrefix,
+	}
+	return metadata, output
 }

@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/outofcoffee/since/changelog"
+	"github.com/outofcoffee/since/hooks"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
 )
@@ -38,7 +39,8 @@ The changelog is then committed and a new tag is created
 with the new version.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		release(releaseArgs.changelogFile, vcs.TagOrderBy(projectArgs.orderBy), projectArgs.repoPath)
+		changelogFile := changelog.ResolveChangelogFile(projectArgs.repoPath, changelogArgs.changelogFile)
+		release(changelogFile, vcs.TagOrderBy(projectArgs.orderBy), projectArgs.repoPath)
 	},
 }
 
@@ -49,12 +51,23 @@ func init() {
 }
 
 func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
-	version, vPrefix, updatedChangelog := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
-	if vPrefix {
+	metadata, updatedChangelog := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
+	version := metadata.NewVersion
+	if metadata.VPrefix {
 		version = "v" + version
 	}
 
-	err := changelog.UpdateChangelog(changelogFile, updatedChangelog)
+	config, err := hooks.LoadConfig(repoPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to load hooks config: %w", err))
+	}
+
+	err = hooks.ExecuteHooks(config, hooks.Before, metadata)
+	if err != nil {
+		panic(fmt.Errorf("failed to execute hooks before release: %w", err))
+	}
+
+	err = changelog.UpdateChangelog(changelogFile, updatedChangelog)
 	if err != nil {
 		panic(fmt.Errorf("failed to update changelog: %w", err))
 	}
@@ -67,6 +80,11 @@ func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
 	err = vcs.TagRelease(repoPath, hash, version)
 	if err != nil {
 		panic(fmt.Errorf("failed to tag release commit: %s: %w", hash, err))
+	}
+
+	err = hooks.ExecuteHooks(config, hooks.After, metadata)
+	if err != nil {
+		panic(fmt.Errorf("failed to execute hooks after release: %w", err))
 	}
 
 	fmt.Printf("released version %s\n", version)

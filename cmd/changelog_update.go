@@ -36,8 +36,9 @@ var updateCmd = &cobra.Command{
 using the commits since the last release.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		changelogFile := changelog.ResolveChangelogFile(updateArgs.repoPath, changelogArgs.changelogFile)
 		updateChangelog(
-			changelogArgs.changelogFile,
+			changelogFile,
 			vcs.TagOrderBy(updateArgs.orderBy),
 			updateArgs.repoPath,
 		)
@@ -52,7 +53,7 @@ func init() {
 }
 
 func updateChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
-	_, _, updated := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
+	_, updated := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
 
 	err := changelog.UpdateChangelog(changelogFile, updated)
 	if err != nil {
