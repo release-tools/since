@@ -61,14 +61,14 @@ func executeHook(hook cfg.Hook, metadata vcs.ReleaseMetadata) error {
 	logrus.Debugf("executing hook '%s %s'", hook.Command, strings.Join(hook.Args, " "))
 
 	cmd := exec.Command(hook.Command, hook.Args...)
+	cmd.Dir = metadata.RepoPath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = []string{
+	cmd.Env = append(os.Environ(), []string{
 		"SINCE_NEW_VERSION=" + metadata.NewVersion,
 		"SINCE_OLD_VERSION=" + metadata.OldVersion,
 		"SINCE_SHA=" + metadata.Sha,
-	}
-	cmd.Dir = metadata.RepoPath
+	}...)
 
 	err := cmd.Run()
 	if err != nil {
