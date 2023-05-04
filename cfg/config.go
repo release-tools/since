@@ -30,9 +30,9 @@ type Hook struct {
 }
 
 type SinceConfig struct {
-	Before        []Hook `json:"before"`
-	After         []Hook `json:"after"`
-	RequireBranch string `json:"requireBranch"`
+	Before        []Hook `yaml:"before"`
+	After         []Hook `yaml:"after"`
+	RequireBranch string `yaml:"requireBranch"`
 }
 
 const defaultConfigFile = "since.yaml"

@@ -40,7 +40,7 @@ func Test_loadConfig(t *testing.T) {
 		{
 			name:    "valid config file",
 			args:    args{configPath: "testdata/valid-config.yaml"},
-			want:    SinceConfig{Before: []Hook{{Command: "echo", Args: []string{"hello world"}}}},
+			want:    SinceConfig{RequireBranch: "main", Before: []Hook{{Command: "echo", Args: []string{"hello world"}}}},
 			wantErr: false,
 		},
 		{
