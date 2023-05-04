@@ -21,7 +21,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/outofcoffee/since/cfg"
 	"github.com/rogpeppe/go-internal/semver"
 	"github.com/sirupsen/logrus"
@@ -114,73 +113,6 @@ func getLatestTag(repoPath string, orderBy TagOrderBy) (string, error) {
 	tagName := latestTag.Name().Short()
 	logrus.Tracef("latest tag ordered by %s: %s", orderBy, tagName)
 	return tagName, nil
-}
-
-// FetchCommitMessages returns a slice of commit messages after the given tag.
-func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]string, error) {
-	if tag == "" {
-		latestTag, err := GetLatestTag(repoPath, orderBy)
-		if err != nil {
-			return nil, err
-		}
-		logrus.Debugf("latest tag: %s", latestTag)
-		tag = latestTag
-	}
-	commits, err := fetchCommitsAfter(repoPath, tag)
-	if err != nil {
-		return nil, err
-	}
-
-	if logrus.IsLevelEnabled(logrus.TraceLevel) {
-		logrus.Tracef("commits: %v", commits)
-	} else {
-		logrus.Debugf("fetched %d commits\n", len(commits))
-	}
-	return commits, nil
-}
-
-// fetchCommitsAfter returns a slice of commit messages after the given tag.
-func fetchCommitsAfter(repoPath string, tag string) ([]string, error) {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return nil, err
-	}
-	afterTag, err := r.Tag(tag)
-	if err != nil {
-		return nil, err
-	}
-	afterTagCommit, err := r.CommitObject(afterTag.Hash())
-	if err != nil {
-		return nil, err
-	}
-	commits, err := r.Log(&git.LogOptions{})
-	if err != nil {
-		return nil, err
-	}
-	var commitMessages []string
-	err = commits.ForEach(func(c *object.Commit) error {
-		if c.Hash == afterTagCommit.Hash {
-			return storer.ErrStop
-		}
-		message := getShortMessage(c.Message)
-		commitMessages = append(commitMessages, message)
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return commitMessages, nil
-}
-
-// getShortMessage returns the first line of a commit message.
-func getShortMessage(message string) string {
-	var short string
-	if strings.Contains(message, "\n") {
-		short = strings.Split(message, "\n")[0]
-	} else {
-		short = message
-	}
-	return strings.TrimSpace(short)
 }
 
 // CommitChangelog commits the changelog file.
