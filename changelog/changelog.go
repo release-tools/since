@@ -18,6 +18,7 @@ package changelog
 
 import (
 	"fmt"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/convcommits"
 	"github.com/outofcoffee/since/semver"
 	"github.com/outofcoffee/since/vcs"
@@ -143,11 +144,12 @@ func mapTypeToSection(prefix string) string {
 
 // GetUpdatedChangelog returns the updated changelog, including the new version header.
 func GetUpdatedChangelog(
+	config cfg.SinceConfig,
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
-	commits, err := vcs.FetchCommitMessages(repoPath, "", orderBy)
+	commits, err := vcs.FetchCommitMessages(config, repoPath, "", orderBy)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
 	}

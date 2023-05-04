@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/semver"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
@@ -56,7 +57,6 @@ func init() {
 
 func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current bool) string {
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
-
 	if current {
 		if vPrefix {
 			currentVersion = "v" + currentVersion
@@ -64,7 +64,12 @@ func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current b
 		return currentVersion
 	}
 
-	commits, err := vcs.FetchCommitMessages(repoPath, tag, orderBy)
+	config, err := cfg.LoadConfig(repoPath)
+	if err != nil {
+		panic(err)
+	}
+
+	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy)
 	if err != nil {
 		panic(err)
 	}

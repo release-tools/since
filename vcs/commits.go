@@ -20,12 +20,14 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/sirupsen/logrus"
+	"regexp"
 	"strings"
 )
 
 // FetchCommitMessages returns a slice of commit messages after the given tag.
-func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]string, error) {
+func FetchCommitMessages(config cfg.SinceConfig, repoPath string, tag string, orderBy TagOrderBy) ([]string, error) {
 	if tag == "" {
 		latestTag, err := GetLatestTag(repoPath, orderBy)
 		if err != nil {
@@ -34,7 +36,7 @@ func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]str
 		logrus.Debugf("most recent tag: %s", latestTag)
 		tag = latestTag
 	}
-	commits, err := fetchCommitsAfter(repoPath, tag)
+	commits, err := fetchCommitsAfter(config, repoPath, tag)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +50,12 @@ func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]str
 }
 
 // fetchCommitsAfter returns a slice of commit messages after the given tag.
-func fetchCommitsAfter(repoPath string, tag string) ([]string, error) {
+func fetchCommitsAfter(config cfg.SinceConfig, repoPath string, tag string) ([]string, error) {
+	var excludes []*regexp.Regexp
+	for _, i := range config.Ignore {
+		excludes = append(excludes, regexp.MustCompile(i))
+	}
+
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
@@ -70,7 +77,11 @@ func fetchCommitsAfter(repoPath string, tag string) ([]string, error) {
 		if c.Hash == afterTagCommit.Hash {
 			return storer.ErrStop
 		}
-		message := getShortMessage(c.Message)
+		longMessage := c.Message
+		if !shouldInclude(longMessage, excludes) {
+			return nil
+		}
+		message := getShortMessage(longMessage)
 		commitMessages = append(commitMessages, message)
 		return nil
 	})
@@ -78,6 +89,16 @@ func fetchCommitsAfter(repoPath string, tag string) ([]string, error) {
 		return nil, err
 	}
 	return commitMessages, nil
+}
+
+// shouldInclude returns true if the commit message does not match any of the excludes.
+func shouldInclude(message string, excludes []*regexp.Regexp) bool {
+	for _, exclude := range excludes {
+		if exclude.MatchString(message) {
+			return false
+		}
+	}
+	return true
 }
 
 // getShortMessage returns the first line of a commit message.

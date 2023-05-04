@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/changelog"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
@@ -54,6 +55,10 @@ func init() {
 }
 
 func generateChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
-	_, updated := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
+	config, err := cfg.LoadConfig(repoPath)
+	if err != nil {
+		panic(err)
+	}
+	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath)
 	fmt.Println(updated)
 }

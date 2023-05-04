@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/changelog"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/spf13/cobra"
@@ -43,7 +44,12 @@ func init() {
 }
 
 func listCommits(repoPath string, tag string, orderBy vcs.TagOrderBy) (string, error) {
-	commits, err := vcs.FetchCommitMessages(repoPath, tag, orderBy)
+	config, err := cfg.LoadConfig(repoPath)
+	if err != nil {
+		panic(err)
+	}
+
+	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy)
 	if err != nil {
 		return "", err
 	}
