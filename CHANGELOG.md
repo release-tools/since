@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.11.1] - 2023-05-04
+### Changed
+- build: adds since config.
+- refactor: improves logging of VCS operations.
+
+### Fixed
+- fix: inherit environment when invoking hooks.
+
 ## [0.11.0] - 2023-05-04
 ### Added
 - feat: adds release check for required branch.
