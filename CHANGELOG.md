@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.11.0] - 2023-05-04
+### Added
+- feat: adds release check for required branch.
+
+### Changed
+- refactor: moves commit logic to separate file.
+
+### Fixed
+- fix: makes changelog path relative to repo root when adding to index.
+
 ## [0.10.0] - 2023-05-04
 ### Added
 - feat: adds support for pre- and post- release hooks.
