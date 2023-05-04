@@ -185,6 +185,12 @@ func getShortMessage(message string) string {
 
 // CommitChangelog commits the changelog file.
 func CommitChangelog(repoPath string, changelogFile string, version string) (hash string, err error) {
+	// make relative to repo root
+	repoPathToChangelog := strings.TrimPrefix(changelogFile, repoPath)
+	if strings.HasPrefix(repoPathToChangelog, "/") || strings.HasPrefix(repoPathToChangelog, "\\") {
+		repoPathToChangelog = repoPathToChangelog[1:]
+	}
+
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return "", err
@@ -193,7 +199,7 @@ func CommitChangelog(repoPath string, changelogFile string, version string) (has
 	if err != nil {
 		return "", err
 	}
-	_, err = w.Add(changelogFile)
+	_, err = w.Add(repoPathToChangelog)
 	if err != nil {
 		return "", err
 	}
