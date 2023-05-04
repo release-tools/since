@@ -1,4 +1,4 @@
-package hooks
+package cfg
 
 import (
 	"fmt"
@@ -14,8 +14,9 @@ type Hook struct {
 }
 
 type SinceConfig struct {
-	Before []Hook `json:"before"`
-	After  []Hook `json:"after"`
+	Before        []Hook `json:"before"`
+	After         []Hook `json:"after"`
+	RequireBranch string `json:"requireBranch"`
 }
 
 const defaultConfigFile = "since.yaml"

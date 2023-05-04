@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"fmt"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -17,8 +18,8 @@ const (
 )
 
 // ExecuteHooks executes all hooks of the given type
-func ExecuteHooks(config SinceConfig, hookType HookType, metadata vcs.ReleaseMetadata) error {
-	var hooks []Hook
+func ExecuteHooks(config cfg.SinceConfig, hookType HookType, metadata vcs.ReleaseMetadata) error {
+	var hooks []cfg.Hook
 	switch hookType {
 	case Before:
 		hooks = config.Before
@@ -40,7 +41,7 @@ func ExecuteHooks(config SinceConfig, hookType HookType, metadata vcs.ReleaseMet
 }
 
 // executeHook executes a hook command with the given arguments
-func executeHook(hook Hook, metadata vcs.ReleaseMetadata) error {
+func executeHook(hook cfg.Hook, metadata vcs.ReleaseMetadata) error {
 	logrus.Debugf("executing hook '%s %s'", hook.Command, strings.Join(hook.Args, " "))
 
 	cmd := exec.Command(hook.Command, hook.Args...)

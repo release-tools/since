@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/changelog"
 	"github.com/outofcoffee/since/hooks"
 	"github.com/outofcoffee/since/vcs"
@@ -51,15 +52,18 @@ func init() {
 }
 
 func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
+	config, err := cfg.LoadConfig(repoPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to load config: %w", err))
+	}
+	if err = vcs.CheckBranch(repoPath, config); err != nil {
+		panic(err)
+	}
+
 	metadata, updatedChangelog := changelog.GetUpdatedChangelog(changelogFile, orderBy, repoPath)
 	version := metadata.NewVersion
 	if metadata.VPrefix {
 		version = "v" + version
-	}
-
-	config, err := hooks.LoadConfig(repoPath)
-	if err != nil {
-		panic(fmt.Errorf("failed to load hooks config: %w", err))
 	}
 
 	err = hooks.ExecuteHooks(config, hooks.Before, metadata)

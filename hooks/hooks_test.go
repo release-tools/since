@@ -1,13 +1,14 @@
 package hooks
 
 import (
+	"github.com/outofcoffee/since/cfg"
 	"github.com/outofcoffee/since/vcs"
 	"testing"
 )
 
 func TestExecuteHooks(t *testing.T) {
 	type args struct {
-		config   SinceConfig
+		config   cfg.SinceConfig
 		hookType HookType
 		metadata vcs.ReleaseMetadata
 	}
@@ -18,14 +19,14 @@ func TestExecuteHooks(t *testing.T) {
 	}{
 		{
 			name:    "no hooks",
-			args:    args{config: SinceConfig{}, hookType: Before, metadata: vcs.ReleaseMetadata{}},
+			args:    args{config: cfg.SinceConfig{}, hookType: Before, metadata: vcs.ReleaseMetadata{}},
 			wantErr: false,
 		},
 		{
 			name: "successful hook",
 			args: args{
-				config: SinceConfig{
-					Before: []Hook{
+				config: cfg.SinceConfig{
+					Before: []cfg.Hook{
 						{
 							Command: "echo",
 							Args:    []string{"hello world"},
@@ -40,8 +41,8 @@ func TestExecuteHooks(t *testing.T) {
 		{
 			name: "failing hook",
 			args: args{
-				config: SinceConfig{
-					Before: []Hook{
+				config: cfg.SinceConfig{
+					Before: []cfg.Hook{
 						{
 							Command: "false",
 							Args:    []string{},
@@ -56,8 +57,8 @@ func TestExecuteHooks(t *testing.T) {
 		{
 			name: "env substitution",
 			args: args{
-				config: SinceConfig{
-					Before: []Hook{
+				config: cfg.SinceConfig{
+					Before: []cfg.Hook{
 						{
 							Command: "bash",
 							Args:    []string{"-c", `[ "$SINCE_SHA" == "1234567890" ]`},
