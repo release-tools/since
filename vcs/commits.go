@@ -31,7 +31,7 @@ func FetchCommitMessages(repoPath string, tag string, orderBy TagOrderBy) ([]str
 		if err != nil {
 			return nil, err
 		}
-		logrus.Debugf("latest tag: %s", latestTag)
+		logrus.Debugf("most recent tag: %s", latestTag)
 		tag = latestTag
 	}
 	commits, err := fetchCommitsAfter(repoPath, tag)

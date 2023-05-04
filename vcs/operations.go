@@ -139,7 +139,10 @@ func CommitChangelog(repoPath string, changelogFile string, version string) (has
 	if err != nil {
 		return "", err
 	}
-	return commit.String(), nil
+	sha := commit.String()
+
+	logrus.Debugf("committed changelog %s with %s", changelogFile, sha)
+	return sha, nil
 }
 
 // TagRelease tags the repository with the given version.
@@ -152,6 +155,7 @@ func TagRelease(repoPath string, hash string, version string) error {
 	if err != nil {
 		return err
 	}
+	logrus.Debugf("tagged %s with %s", hash, version)
 	return nil
 }
 
