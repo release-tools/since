@@ -8,6 +8,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - feat: adds release check for required branch.
 
 ### Changed
+- build: release v0.11.0.
+- refactor: moves commit logic to separate file.
+
+### Fixed
+- fix: corrects YAML config deserialisation tags.
+- fix: makes changelog path relative to repo root when adding to index.
+
+## [0.11.0] - 2023-05-04
+### Added
+- feat: adds release check for required branch.
+
+### Changed
 - refactor: moves commit logic to separate file.
 
 ### Fixed
