@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.12.0] - 2023-05-04
+### Added
+- feat: adds ability to ignore commits.
+
 ## [0.11.1] - 2023-05-04
 ### Changed
 - build: adds since config.
