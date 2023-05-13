@@ -27,6 +27,7 @@ import (
 var updateArgs struct {
 	orderBy  string
 	repoPath string
+	unique   bool
 }
 
 // updateCmd represents the update command
@@ -42,6 +43,7 @@ using the commits since the last release.`,
 			changelogFile,
 			vcs.TagOrderBy(updateArgs.orderBy),
 			updateArgs.repoPath,
+			updateArgs.unique,
 		)
 	},
 }
@@ -51,15 +53,21 @@ func init() {
 
 	updateCmd.Flags().StringVarP(&updateArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
 	updateCmd.Flags().StringVarP(&updateArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
+	updateCmd.Flags().BoolVar(&updateArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func updateChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
+func updateChangelog(
+	changelogFile string,
+	orderBy vcs.TagOrderBy,
+	repoPath string,
+	unique bool,
+) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
 		panic(err)
 	}
 
-	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath)
+	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, unique)
 	err = changelog.UpdateChangelog(changelogFile, updated)
 	if err != nil {
 		panic(fmt.Errorf("failed to update changelog: %w", err))

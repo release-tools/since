@@ -27,6 +27,7 @@ import (
 
 var releaseArgs struct {
 	changelogFile string
+	unique        bool
 }
 
 // releaseCmd represents the release command
@@ -41,7 +42,12 @@ with the new version.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		changelogFile := changelog.ResolveChangelogFile(projectArgs.repoPath, changelogArgs.changelogFile)
-		release(changelogFile, vcs.TagOrderBy(projectArgs.orderBy), projectArgs.repoPath)
+		release(
+			changelogFile,
+			vcs.TagOrderBy(projectArgs.orderBy),
+			projectArgs.repoPath,
+			releaseArgs.unique,
+		)
 	},
 }
 
@@ -49,9 +55,15 @@ func init() {
 	projectCmd.AddCommand(releaseCmd)
 
 	releaseCmd.Flags().StringVarP(&releaseArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
+	releaseCmd.Flags().BoolVar(&releaseArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
+func release(
+	changelogFile string,
+	orderBy vcs.TagOrderBy,
+	repoPath string,
+	unique bool,
+) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to load config: %w", err))
@@ -60,7 +72,7 @@ func release(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
 		panic(err)
 	}
 
-	metadata, updatedChangelog := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath)
+	metadata, updatedChangelog := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, unique)
 	version := metadata.NewVersion
 	if metadata.VPrefix {
 		version = "v" + version

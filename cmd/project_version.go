@@ -27,6 +27,7 @@ import (
 
 var versionArgs struct {
 	current bool
+	unique  bool
 }
 
 // versionCmd represents the version command
@@ -41,7 +42,13 @@ Changes influence the version according to
 conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		version := printVersion(projectArgs.repoPath, projectArgs.tag, vcs.TagOrderBy(projectArgs.orderBy), versionArgs.current)
+		version := printVersion(
+			projectArgs.repoPath,
+			projectArgs.tag,
+			vcs.TagOrderBy(projectArgs.orderBy),
+			versionArgs.current,
+			versionArgs.unique,
+		)
 		if version == "" {
 			os.Exit(1)
 		}
@@ -53,9 +60,16 @@ func init() {
 	projectCmd.AddCommand(versionCmd)
 
 	versionCmd.Flags().BoolVarP(&versionArgs.current, "current", "c", false, "Just print the current version")
+	versionCmd.Flags().BoolVar(&versionArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current bool) string {
+func printVersion(
+	repoPath string,
+	tag string,
+	orderBy vcs.TagOrderBy,
+	current bool,
+	unique bool,
+) string {
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
 	if current {
 		if vPrefix {
@@ -69,7 +83,7 @@ func printVersion(repoPath string, tag string, orderBy vcs.TagOrderBy, current b
 		panic(err)
 	}
 
-	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy)
+	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy, unique)
 	if err != nil {
 		panic(err)
 	}

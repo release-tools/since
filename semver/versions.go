@@ -18,6 +18,7 @@ package semver
 
 import (
 	"github.com/outofcoffee/since/convcommits"
+	"github.com/outofcoffee/since/stringutil"
 	"github.com/outofcoffee/since/vcs"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -98,27 +99,14 @@ func bump(v string) string {
 
 // DetermineChangeType determines the type of change based on the commit messages.
 func DetermineChangeType(types []string) Component {
-	if containsIgnoreCase(types, "breaking change") {
+	if stringutil.ContainsIgnoreCase(types, "breaking change") {
 		return ComponentMajor
-	} else if containsIgnoreCase(types, "feat") {
+	} else if stringutil.ContainsIgnoreCase(types, "feat") {
 		return ComponentMinor
-	} else if containsIgnoreCase(types, "build", "chore", "ci", "docs", "fix", "refactor", "style", "test") {
+	} else if stringutil.ContainsIgnoreCase(types, "build", "chore", "ci", "docs", "fix", "refactor", "style", "test") {
 		return ComponentPatch
 	} else {
 		logrus.Warnf("unable to determine next version from changes")
 		return ComponentNone
 	}
-}
-
-// containsIgnoreCase returns true if the orig slice contains any of the search strings,
-// compared in a case-insensitive manner.
-func containsIgnoreCase(orig []string, search ...string) bool {
-	for _, o := range orig {
-		for _, s := range search {
-			if strings.ToLower(o) == strings.ToLower(s) {
-				return true
-			}
-		}
-	}
-	return false
 }

@@ -24,6 +24,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var changesArgs struct {
+	unique bool
+}
+
 // changesCmd represents the changes command
 var changesCmd = &cobra.Command{
 	Use:   "changes",
@@ -31,7 +35,12 @@ var changesCmd = &cobra.Command{
 	Long: `Reads the commit history for the current git repository, starting
 from the most recent tag. Lists the commits categorised by their type.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		changes, err := listCommits(projectArgs.repoPath, projectArgs.tag, vcs.TagOrderBy(projectArgs.orderBy))
+		changes, err := listCommits(
+			projectArgs.repoPath,
+			projectArgs.tag,
+			vcs.TagOrderBy(projectArgs.orderBy),
+			changesArgs.unique,
+		)
 		if err != nil {
 			panic(err)
 		}
@@ -41,15 +50,22 @@ from the most recent tag. Lists the commits categorised by their type.`,
 
 func init() {
 	projectCmd.AddCommand(changesCmd)
+
+	changesCmd.Flags().BoolVar(&changesArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func listCommits(repoPath string, tag string, orderBy vcs.TagOrderBy) (string, error) {
+func listCommits(
+	repoPath string,
+	tag string,
+	orderBy vcs.TagOrderBy,
+	unique bool,
+) (string, error) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
 		panic(err)
 	}
 
-	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy)
+	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy, unique)
 	if err != nil {
 		return "", err
 	}

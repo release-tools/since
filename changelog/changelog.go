@@ -148,8 +148,9 @@ func GetUpdatedChangelog(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
+	unique bool,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
-	commits, err := vcs.FetchCommitMessages(config, repoPath, "", orderBy)
+	commits, err := vcs.FetchCommitMessages(config, repoPath, "", orderBy, unique)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
 	}

@@ -21,13 +21,20 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/outofcoffee/since/cfg"
+	"github.com/outofcoffee/since/stringutil"
 	"github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
 )
 
 // FetchCommitMessages returns a slice of commit messages after the given tag.
-func FetchCommitMessages(config cfg.SinceConfig, repoPath string, tag string, orderBy TagOrderBy) ([]string, error) {
+func FetchCommitMessages(
+	config cfg.SinceConfig,
+	repoPath string,
+	tag string,
+	orderBy TagOrderBy,
+	unique bool,
+) ([]string, error) {
 	if tag == "" {
 		latestTag, err := GetLatestTag(repoPath, orderBy)
 		if err != nil {
@@ -36,7 +43,7 @@ func FetchCommitMessages(config cfg.SinceConfig, repoPath string, tag string, or
 		logrus.Debugf("most recent tag: %s", latestTag)
 		tag = latestTag
 	}
-	commits, err := fetchCommitsAfter(config, repoPath, tag)
+	commits, err := fetchCommitsAfter(config, repoPath, tag, unique)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +57,12 @@ func FetchCommitMessages(config cfg.SinceConfig, repoPath string, tag string, or
 }
 
 // fetchCommitsAfter returns a slice of commit messages after the given tag.
-func fetchCommitsAfter(config cfg.SinceConfig, repoPath string, tag string) ([]string, error) {
+func fetchCommitsAfter(
+	config cfg.SinceConfig,
+	repoPath string,
+	tag string,
+	unique bool,
+) ([]string, error) {
 	var excludes []*regexp.Regexp
 	for _, i := range config.Ignore {
 		excludes = append(excludes, regexp.MustCompile(i))
@@ -87,6 +99,9 @@ func fetchCommitsAfter(config cfg.SinceConfig, repoPath string, tag string) ([]s
 	})
 	if err != nil {
 		return nil, err
+	}
+	if unique {
+		commitMessages = stringutil.Unique(commitMessages)
 	}
 	return commitMessages, nil
 }

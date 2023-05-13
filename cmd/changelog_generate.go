@@ -27,6 +27,7 @@ import (
 var generateArgs struct {
 	orderBy  string
 	repoPath string
+	unique   bool
 }
 
 // generateCmd represents the generate command
@@ -38,11 +39,15 @@ adding a new release section using the commits since the last release,
 then prints it to stdout.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		changelogFile := changelog.ResolveChangelogFile(generateArgs.repoPath, changelogArgs.changelogFile)
+		changelogFile := changelog.ResolveChangelogFile(
+			generateArgs.repoPath,
+			changelogArgs.changelogFile,
+		)
 		generateChangelog(
 			changelogFile,
 			vcs.TagOrderBy(generateArgs.orderBy),
 			generateArgs.repoPath,
+			generateArgs.unique,
 		)
 	},
 }
@@ -52,13 +57,19 @@ func init() {
 
 	generateCmd.Flags().StringVarP(&generateArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
 	generateCmd.Flags().StringVarP(&generateArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
+	generateCmd.Flags().BoolVar(&generateArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func generateChangelog(changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
+func generateChangelog(
+	changelogFile string,
+	orderBy vcs.TagOrderBy,
+	repoPath string,
+	unique bool,
+) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
 		panic(err)
 	}
-	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath)
+	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, unique)
 	fmt.Println(updated)
 }
