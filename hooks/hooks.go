@@ -33,6 +33,15 @@ const (
 	After  HookType = "after"
 )
 
+var scriptInterpreter string
+
+func init() {
+	scriptInterpreter = os.Getenv("SINCE_HOOK_SCRIPT_INTERPRETER")
+	if scriptInterpreter == "" {
+		scriptInterpreter = "/bin/bash"
+	}
+}
+
 // ExecuteHooks executes all hooks of the given type
 func ExecuteHooks(config cfg.SinceConfig, hookType HookType, metadata vcs.ReleaseMetadata) error {
 	var hooks []cfg.Hook
@@ -58,9 +67,36 @@ func ExecuteHooks(config cfg.SinceConfig, hookType HookType, metadata vcs.Releas
 
 // executeHook executes a hook command with the given arguments
 func executeHook(hook cfg.Hook, metadata vcs.ReleaseMetadata) error {
-	logrus.Debugf("executing hook '%s %s'", hook.Command, strings.Join(hook.Args, " "))
+	var command string
+	var args []string
 
-	cmd := exec.Command(hook.Command, hook.Args...)
+	if hook.Script != "" {
+		if hook.Command != "" {
+			return fmt.Errorf("hook cannot specify both a command and a script")
+		}
+
+		script, err := os.CreateTemp(os.TempDir(), "since-hook*.sh")
+		if err != nil {
+			return fmt.Errorf("error creating temporary script file: %v", err)
+		}
+		defer os.Remove(script.Name())
+		err = os.WriteFile(script.Name(), []byte(hook.Script), 0755)
+		if err != nil {
+			return err
+		}
+		command = scriptInterpreter
+		args = []string{script.Name()}
+	} else {
+		command = hook.Command
+		args = hook.Args
+	}
+	return execCommand(command, args, metadata)
+}
+
+func execCommand(command string, args []string, metadata vcs.ReleaseMetadata) error {
+	logrus.Debugf("executing hook '%s %s'", command, strings.Join(args, " "))
+
+	cmd := exec.Command(command, args...)
 	cmd.Dir = metadata.RepoPath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -72,12 +108,12 @@ func executeHook(hook cfg.Hook, metadata vcs.ReleaseMetadata) error {
 
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("error executing hook '%s %s': %v", hook.Command, strings.Join(hook.Args, " "), err)
+		return fmt.Errorf("error executing hook '%s %s': %v", command, strings.Join(args, " "), err)
 	}
 	if cmd.ProcessState.Success() {
-		logrus.Debugf("hook '%s %s' executed successfully", hook.Command, strings.Join(hook.Args, " "))
+		logrus.Debugf("hook '%s %s' executed successfully", command, strings.Join(args, " "))
 	} else {
-		logrus.Warnf("hook '%s %s' executed with errors", hook.Command, strings.Join(hook.Args, " "))
+		logrus.Warnf("hook '%s %s' executed with errors", command, strings.Join(args, " "))
 	}
 	return nil
 }

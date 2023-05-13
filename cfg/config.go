@@ -27,6 +27,7 @@ import (
 type Hook struct {
 	Command string   `json:"command"`
 	Args    []string `json:"args"`
+	Script  string   `json:"script"`
 }
 
 type SinceConfig struct {

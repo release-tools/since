@@ -39,13 +39,28 @@ func TestExecuteHooks(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "successful hook",
+			name: "successful command hook",
 			args: args{
 				config: cfg.SinceConfig{
 					Before: []cfg.Hook{
 						{
 							Command: "echo",
 							Args:    []string{"hello world"},
+						},
+					},
+				},
+				metadata: vcs.ReleaseMetadata{},
+				hookType: Before,
+			},
+			wantErr: false,
+		},
+		{
+			name: "successful script hook",
+			args: args{
+				config: cfg.SinceConfig{
+					Before: []cfg.Hook{
+						{
+							Script: `echo "hello world"`,
 						},
 					},
 				},
