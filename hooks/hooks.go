@@ -18,8 +18,8 @@ package hooks
 
 import (
 	"fmt"
-	"github.com/outofcoffee/since/cfg"
-	"github.com/outofcoffee/since/vcs"
+	"github.com/release-tools/since/cfg"
+	"github.com/release-tools/since/vcs"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"

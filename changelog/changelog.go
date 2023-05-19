@@ -18,10 +18,10 @@ package changelog
 
 import (
 	"fmt"
-	"github.com/outofcoffee/since/cfg"
-	"github.com/outofcoffee/since/convcommits"
-	"github.com/outofcoffee/since/semver"
-	"github.com/outofcoffee/since/vcs"
+	"github.com/release-tools/since/cfg"
+	"github.com/release-tools/since/convcommits"
+	"github.com/release-tools/since/semver"
+	"github.com/release-tools/since/vcs"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 	"sort"

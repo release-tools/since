@@ -17,9 +17,9 @@ limitations under the License.
 package semver
 
 import (
-	"github.com/outofcoffee/since/convcommits"
-	"github.com/outofcoffee/since/stringutil"
-	"github.com/outofcoffee/since/vcs"
+	"github.com/release-tools/since/convcommits"
+	"github.com/release-tools/since/stringutil"
+	"github.com/release-tools/since/vcs"
 	"github.com/sirupsen/logrus"
 	"strconv"
 	"strings"

@@ -1,8 +1,8 @@
 # since
-[![CI](https://github.com/outofcoffee/since/actions/workflows/ci.yaml/badge.svg)](https://github.com/outofcoffee/since/actions/workflows/ci.yaml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/outofcoffee/since)](https://goreportcard.com/report/github.com/outofcoffee/since)
-[![Go Reference](https://pkg.go.dev/badge/github.com/outofcoffee/since.svg)](https://pkg.go.dev/github.com/outofcoffee/since)
-![License](https://img.shields.io/github/license/outofcoffee/since)
+[![CI](https://github.com/release-tools/since/actions/workflows/ci.yaml/badge.svg)](https://github.com/release-tools/since/actions/workflows/ci.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/release-tools/since)](https://goreportcard.com/report/github.com/release-tools/since)
+[![Go Reference](https://pkg.go.dev/badge/github.com/release-tools/since.svg)](https://pkg.go.dev/github.com/release-tools/since)
+![License](https://img.shields.io/github/license/release-tools/since)
 
 - Parse git history and generate changelog.
 - Calculate the next version based on [semver](http://semver.org) and [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
@@ -13,13 +13,13 @@
 ### Homebrew
 
 ```bash
-brew install outofcoffee/tap/since
+brew install release-tools/tap/since
 ```
 
 ### Go
 
 ```bash
-go install github.com/outofcoffee/since
+go install github.com/release-tools/since
 ```
 
 ## Usage

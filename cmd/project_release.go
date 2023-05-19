@@ -18,10 +18,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/outofcoffee/since/cfg"
-	"github.com/outofcoffee/since/changelog"
-	"github.com/outofcoffee/since/hooks"
-	"github.com/outofcoffee/since/vcs"
+	"github.com/release-tools/since/cfg"
+	"github.com/release-tools/since/changelog"
+	"github.com/release-tools/since/hooks"
+	"github.com/release-tools/since/vcs"
 	"github.com/spf13/cobra"
 )
 

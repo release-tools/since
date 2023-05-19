@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-import "github.com/outofcoffee/since/cmd"
+import "github.com/release-tools/since/cmd"
 
 func main() {
 	cmd.Execute()

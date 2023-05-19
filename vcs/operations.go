@@ -21,7 +21,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/outofcoffee/since/cfg"
+	"github.com/release-tools/since/cfg"
 	"github.com/rogpeppe/go-internal/semver"
 	"github.com/sirupsen/logrus"
 	"strings"

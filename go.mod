@@ -1,4 +1,4 @@
-module github.com/outofcoffee/since
+module github.com/release-tools/since
 
 go 1.20
 

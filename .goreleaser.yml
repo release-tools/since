@@ -50,7 +50,7 @@ brews:
     # GitHub/GitLab repository to push the formula to
     # Gitea is not supported yet, but the support coming
     tap:
-      owner: outofcoffee
+      owner: release-tools
       name: homebrew-tap
 
     # Git author used to commit to the repository.
@@ -61,7 +61,7 @@ brews:
 
     # Your app's homepage.
     # Default is empty.
-    homepage: "https://github.com/outofcoffee/since"
+    homepage: "https://github.com/release-tools/since"
 
     # Template of your app's description.
     # Default is empty.

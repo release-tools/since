@@ -17,7 +17,7 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/outofcoffee/since/semver"
+	"github.com/release-tools/since/semver"
 	"testing"
 )
 

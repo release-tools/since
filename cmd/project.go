@@ -17,7 +17,7 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/outofcoffee/since/vcs"
+	"github.com/release-tools/since/vcs"
 	"github.com/spf13/cobra"
 )
 

@@ -17,8 +17,8 @@ limitations under the License.
 package hooks
 
 import (
-	"github.com/outofcoffee/since/cfg"
-	"github.com/outofcoffee/since/vcs"
+	"github.com/release-tools/since/cfg"
+	"github.com/release-tools/since/vcs"
 	"testing"
 )
 

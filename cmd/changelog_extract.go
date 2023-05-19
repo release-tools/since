@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/outofcoffee/since/changelog"
+	"github.com/release-tools/since/changelog"
 	"github.com/spf13/cobra"
 	"os"
 )
