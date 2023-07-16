@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/release-tools/since/changelog"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var extractArgs struct {
@@ -50,14 +49,6 @@ func init() {
 
 	extractCmd.Flags().StringVarP(&extractArgs.version, "version", "v", "", "Version to parse changelog for")
 	extractCmd.Flags().BoolVar(&extractArgs.includeHeader, "header", false, "whether to include the version header in the output")
-}
-
-func getWorkingDir() string {
-	workingDir, err := os.Getwd()
-	if err != nil {
-		panic(fmt.Errorf("failed to get working directory: %v", err))
-	}
-	return workingDir
 }
 
 func printChanges(changelogFile string, version string, includeHeader bool) (string, error) {

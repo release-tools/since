@@ -17,6 +17,7 @@ limitations under the License.
 package changelog
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/release-tools/since/cfg"
 	"github.com/release-tools/since/convcommits"
@@ -26,13 +27,15 @@ import (
 	"golang.org/x/exp/maps"
 	"sort"
 	"strings"
-	"time"
 )
 
-type ChangelogSections struct {
+type Sections struct {
 	Boilerplate string
 	Body        string
 }
+
+//go:embed templates/changelog.md
+var changelogTemplate string
 
 var sectionMap map[string][]string
 
@@ -45,34 +48,54 @@ func init() {
 
 // RenderCommits takes a slice of commits and returns a markdown-formatted string,
 // including the category header.
-func RenderCommits(commits []string, groupIntoSections bool) string {
-	categorised := convcommits.CategoriseByType(commits)
-	if groupIntoSections {
-		categorised = groupBySection(categorised)
+func RenderCommits(commits *[]vcs.TagCommits, groupIntoSections bool, unreleasedVersionName string) string {
+	if commits == nil {
+		logrus.Debug("no commits to render")
+		return ""
 	}
-
-	categories := maps.Keys(categorised)
-	sort.Strings(categories)
-
 	var output string
-	for _, category := range categories {
-		output += "### " + category + "\n"
-		items := categorised[category]
-		sort.Strings(items)
-
-		for _, commit := range items {
-			output += "- " + commit + "\n"
+	for _, tagCommits := range *commits {
+		var versionName string
+		if tagCommits.Name == vcs.UnreleasedVersionName {
+			versionName = unreleasedVersionName
+		} else {
+			version := tagCommits.Name
+			if strings.HasPrefix(version, "v") {
+				version = strings.TrimPrefix(version, "v")
+			}
+			versionName = version
 		}
-		output += "\n"
+		if len(output) > 0 {
+			output += "\n\n"
+		}
+		output += "## [" + versionName + "] - " + tagCommits.Date.Format("2006-01-02") + "\n"
+		categorised := convcommits.CategoriseByType(tagCommits.Commits)
+		if groupIntoSections {
+			categorised = groupBySection(categorised)
+		}
+
+		categories := maps.Keys(categorised)
+		sort.Strings(categories)
+
+		for _, category := range categories {
+			output += "### " + category + "\n"
+			items := categorised[category]
+			sort.Strings(items)
+
+			for _, commit := range items {
+				output += "- " + commit + "\n"
+			}
+			output += "\n"
+		}
+		output = strings.TrimSpace(output)
+		logrus.Debugf("grouped %d commits for version %s into %d sections\n", len(tagCommits.Commits), tagCommits.Name, len(maps.Keys(categorised)))
 	}
-	output = strings.TrimSpace(output)
-	logrus.Debugf("grouped commits into %d sections\n", len(maps.Keys(categorised)))
 	return output
 }
 
 // SplitIntoSections takes a slice of changelog lines and splits it into
 // boilerplate and body sections.
-func SplitIntoSections(lines []string) (ChangelogSections, error) {
+func SplitIntoSections(lines []string) (Sections, error) {
 	var boilerplate string
 
 	// find the first h2
@@ -94,14 +117,14 @@ func SplitIntoSections(lines []string) (ChangelogSections, error) {
 		}
 	}
 	if firstH2 == 0 {
-		return ChangelogSections{}, fmt.Errorf("could not find h2 in changelog")
+		return Sections{}, fmt.Errorf("could not find h2 in changelog")
 	}
 
 	var body string
 	for _, line := range lines[firstH2:] {
 		body += line + "\n"
 	}
-	sections := ChangelogSections{
+	sections := Sections{
 		Boilerplate: boilerplate,
 		Body:        strings.TrimSpace(body),
 	}
@@ -142,28 +165,32 @@ func mapTypeToSection(prefix string) string {
 	return prefix
 }
 
-// GetUpdatedChangelog returns the updated changelog, including the new version header.
+// GetUpdatedChangelog returns the updated changelog, grouped by version headers.
 func GetUpdatedChangelog(
 	config cfg.SinceConfig,
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
+	afterTag string,
 	unique bool,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
-	commits, err := vcs.FetchCommitMessages(config, repoPath, "", orderBy, unique)
+	commits, err := vcs.FetchCommitsByTag(config, repoPath, "", afterTag, orderBy, unique)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
 	}
-	rendered := RenderCommits(commits, true)
 
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
 
+	// determine next version only based on unreleased commits
+	unreleasedCommits := (*commits)[0].Commits
+
 	// always disable vPrefix for changelog heading
-	nextVersion := semver.GetNextVersion(currentVersion, false, commits)
+	nextVersion := semver.GetNextVersion(currentVersion, false, unreleasedCommits)
 	if nextVersion == "" {
 		panic("Could not determine next version")
 	}
-	versionHeader := "## [" + nextVersion + "] - " + time.Now().UTC().Format("2006-01-02") + "\n"
+
+	rendered := RenderCommits(commits, true, nextVersion)
 
 	lines, err := ReadFile(changelogFile)
 	if err != nil {
@@ -174,7 +201,7 @@ func GetUpdatedChangelog(
 		panic(err)
 	}
 
-	output := sections.Boilerplate + versionHeader + rendered + "\n\n" + sections.Body
+	output := sections.Boilerplate + rendered + "\n\n" + sections.Body
 
 	sha, err := vcs.GetHeadSha(repoPath)
 	if err != nil {
@@ -188,4 +215,27 @@ func GetUpdatedChangelog(
 		VPrefix:    vPrefix,
 	}
 	return metadata, output
+}
+
+// InitChangelog creates a new changelog file with a placeholder entry.
+func InitChangelog(
+	config cfg.SinceConfig,
+	changelogFile string,
+	orderBy vcs.TagOrderBy,
+	repoPath string,
+	unique bool,
+) (newChangelog string, err error) {
+	err = WriteChangelog(changelogFile, changelogTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to initialise changelog: %s: %v", changelogFile, err)
+	}
+
+	earliestTag, err := vcs.GetEarliestTag(repoPath, orderBy)
+	if err != nil {
+		return "", fmt.Errorf("failed to get earliest tag: %v", err)
+	}
+
+	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, earliestTag, unique)
+
+	return updated, nil
 }

@@ -24,26 +24,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var generateArgs struct {
+var initArgs struct {
 	orderBy  string
 	repoPath string
 	unique   bool
 }
 
-// generateCmd represents the generate command
-var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Print generated changelog based on changes since last release",
-	Long: `Generates a new changelog based on an existing changelog file,
-adding a new release section using the commits since the last release,
-then prints it to stdout.`,
-	Args: cobra.NoArgs,
+// initCmd represents the init command
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialise a new changelog file",
+	Long:  `Initialises a new changelog file with a placeholder entry.`,
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		workingDir := getWorkingDir()
 		changelogFile := changelog.ResolveChangelogFile(
-			generateArgs.repoPath,
+			workingDir,
 			changelogArgs.changelogFile,
 		)
-		generateChangelog(
+		initChangelog(
 			changelogFile,
 			vcs.TagOrderBy(generateArgs.orderBy),
 			generateArgs.repoPath,
@@ -53,14 +52,14 @@ then prints it to stdout.`,
 }
 
 func init() {
-	changelogCmd.AddCommand(generateCmd)
+	changelogCmd.AddCommand(initCmd)
 
-	generateCmd.Flags().StringVarP(&generateArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
-	generateCmd.Flags().StringVarP(&generateArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
-	generateCmd.Flags().BoolVar(&generateArgs.unique, "unique", true, "De-duplicate commit messages")
+	initCmd.Flags().StringVarP(&initArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
+	initCmd.Flags().StringVarP(&initArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
+	initCmd.Flags().BoolVar(&initArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func generateChangelog(
+func initChangelog(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
@@ -70,6 +69,9 @@ func generateChangelog(
 	if err != nil {
 		panic(err)
 	}
-	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", unique)
-	fmt.Println(updated)
+	newChangelog, err := changelog.InitChangelog(config, changelogFile, orderBy, repoPath, unique)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(newChangelog)
 }

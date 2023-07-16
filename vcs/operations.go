@@ -19,10 +19,7 @@ package vcs
 import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/release-tools/since/cfg"
-	"github.com/rogpeppe/go-internal/semver"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -33,86 +30,6 @@ type ReleaseMetadata struct {
 	RepoPath   string
 	Sha        string
 	VPrefix    bool
-}
-
-type TagOrderBy string
-
-const (
-	TagOrderAlphabetical TagOrderBy = "alphabetical"
-	TagOrderCommitDate   TagOrderBy = "commit-date"
-	TagOrderSemver       TagOrderBy = "semver"
-)
-
-var latestTag string
-
-// GetLatestTag returns the latest tag in the repository.
-func GetLatestTag(repoPath string, orderBy TagOrderBy) (string, error) {
-	if latestTag == "" {
-		tag, err := getLatestTag(repoPath, orderBy)
-		if err != nil {
-			return "", err
-		}
-		latestTag = tag
-	}
-	return latestTag, nil
-}
-
-// getLatestTag returns the latest tag in the repository, determined by the given order.
-func getLatestTag(repoPath string, orderBy TagOrderBy) (string, error) {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return "", err
-	}
-	tags, err := r.Tags()
-	if err != nil {
-		return "", err
-	}
-
-	var latestTag *plumbing.Reference
-	var latestCommit *object.Commit
-	err = tags.ForEach(func(t *plumbing.Reference) error {
-		latest := false
-		if latestTag == nil {
-			latest = true
-
-		} else {
-			switch orderBy {
-			case TagOrderAlphabetical:
-				latest = t.Name().Short() > latestTag.Name().Short()
-				break
-
-			case TagOrderCommitDate:
-				commit, err := r.CommitObject(t.Hash())
-				if err != nil {
-					logrus.Tracef("failed to get commit object for tag %s: %v", t.Name().Short(), err)
-					return nil
-				}
-				if latestCommit == nil || commit.Committer.When.After(latestCommit.Committer.When) {
-					latestCommit = commit
-					latest = true
-				}
-				break
-
-			case TagOrderSemver:
-				latest = semver.Compare(t.Name().Short(), latestTag.Name().Short()) > 0
-
-			default:
-				panic("unknown tag order by: " + orderBy)
-			}
-		}
-
-		if latest {
-			latestTag = t
-		}
-		return nil
-	})
-	if err != nil {
-		return "", err
-	}
-
-	tagName := latestTag.Name().Short()
-	logrus.Tracef("latest tag ordered by %s: %s", orderBy, tagName)
-	return tagName, nil
 }
 
 // CommitChangelog commits the changelog file.
@@ -143,20 +60,6 @@ func CommitChangelog(repoPath string, changelogFile string, version string) (has
 
 	logrus.Debugf("committed changelog %s with %s", changelogFile, sha)
 	return sha, nil
-}
-
-// TagRelease tags the repository with the given version.
-func TagRelease(repoPath string, hash string, version string) error {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return err
-	}
-	_, err = r.CreateTag(version, plumbing.NewHash(hash), nil)
-	if err != nil {
-		return err
-	}
-	logrus.Debugf("tagged %s with %s", hash, version)
-	return nil
 }
 
 // GetHeadSha returns the SHA of the HEAD commit.

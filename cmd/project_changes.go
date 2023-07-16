@@ -65,9 +65,9 @@ func listCommits(
 		panic(err)
 	}
 
-	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy, unique)
+	commits, err := vcs.FetchCommitsByTag(config, repoPath, "", tag, orderBy, unique)
 	if err != nil {
 		return "", err
 	}
-	return changelog.RenderCommits(commits, true), nil
+	return changelog.RenderCommits(commits, true, vcs.UnreleasedVersionName), nil
 }

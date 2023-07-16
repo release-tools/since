@@ -17,6 +17,9 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -35,4 +38,12 @@ func init() {
 	rootCmd.AddCommand(changelogCmd)
 
 	changelogCmd.PersistentFlags().StringVarP(&changelogArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
+}
+
+func getWorkingDir() string {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Errorf("failed to get working directory: %v", err))
+	}
+	return workingDir
 }

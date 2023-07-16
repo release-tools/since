@@ -72,7 +72,7 @@ func release(
 		panic(err)
 	}
 
-	metadata, updatedChangelog := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, unique)
+	metadata, updatedChangelog := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", unique)
 	version := metadata.NewVersion
 	if metadata.VPrefix {
 		version = "v" + version
@@ -83,7 +83,7 @@ func release(
 		panic(fmt.Errorf("failed to execute hooks before release: %w", err))
 	}
 
-	err = changelog.UpdateChangelog(changelogFile, updatedChangelog)
+	err = changelog.WriteChangelog(changelogFile, updatedChangelog)
 	if err != nil {
 		panic(fmt.Errorf("failed to update changelog: %w", err))
 	}

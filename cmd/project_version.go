@@ -83,7 +83,7 @@ func printVersion(
 		panic(err)
 	}
 
-	commits, err := vcs.FetchCommitMessages(config, repoPath, tag, orderBy, unique)
+	commits, err := vcs.FetchCommitMessages(config, repoPath, "", tag, orderBy, unique)
 	if err != nil {
 		panic(err)
 	}

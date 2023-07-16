@@ -17,15 +17,43 @@ limitations under the License.
 package changelog
 
 import (
+	"github.com/release-tools/since/vcs"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestRenderCommits(t *testing.T) {
 	type args struct {
 		groupIntoSections bool
-		commits           []string
+		commits           *[]vcs.TagCommits
 	}
+
+	var fewCommits []vcs.TagCommits
+	fewCommits = append(fewCommits, vcs.TagCommits{
+		TagMeta: vcs.TagMeta{
+			Name: vcs.UnreleasedVersionName,
+			Date: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
+		},
+		Commits: []string{"feat: foo", "fix: bar"},
+	})
+
+	var manyCommits []vcs.TagCommits
+	manyCommits = append(manyCommits, vcs.TagCommits{
+		TagMeta: vcs.TagMeta{
+			Name: vcs.UnreleasedVersionName,
+			Date: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
+		},
+		Commits: []string{"feat: foo", "fix: bar", "chore: qux"},
+	})
+	manyCommits = append(manyCommits, vcs.TagCommits{
+		TagMeta: vcs.TagMeta{
+			Name: "0.1.0",
+			Date: time.Date(2023, 8, 27, 0, 0, 0, 0, time.UTC),
+		},
+		Commits: []string{"ci: baz", "build: quux", "feat: corge"},
+	})
+
 	tests := []struct {
 		name string
 		args args
@@ -34,7 +62,7 @@ func TestRenderCommits(t *testing.T) {
 		{
 			name: "no commits",
 			args: args{
-				commits:           []string{},
+				commits:           nil,
 				groupIntoSections: false,
 			},
 			want: "",
@@ -42,10 +70,11 @@ func TestRenderCommits(t *testing.T) {
 		{
 			name: "print commits",
 			args: args{
-				commits:           []string{"feat: foo", "fix: bar"},
+				commits:           &fewCommits,
 				groupIntoSections: false,
 			},
-			want: `### feat
+			want: `## [Unreleased] - 2023-08-28
+### feat
 - feat: foo
 
 ### fix
@@ -54,24 +83,31 @@ func TestRenderCommits(t *testing.T) {
 		{
 			name: "group commits",
 			args: args{
-				commits:           []string{"feat: foo", "fix: bar", "ci: baz", "chore: qux", "build: quux"},
+				commits:           &manyCommits,
 				groupIntoSections: true,
 			},
-			want: `### Added
+			want: `## [Unreleased] - 2023-08-28
+### Added
 - feat: foo
 
 ### Changed
-- build: quux
 - chore: qux
-- ci: baz
 
 ### Fixed
-- fix: bar`,
+- fix: bar
+
+## [0.1.0] - 2023-08-27
+### Added
+- feat: corge
+
+### Changed
+- build: quux
+- ci: baz`,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := RenderCommits(tt.args.commits, tt.args.groupIntoSections); got != tt.want {
+			if got := RenderCommits(tt.args.commits, tt.args.groupIntoSections, vcs.UnreleasedVersionName); got != tt.want {
 				t.Errorf("RenderCommits() got = %v, want %v", got, tt.want)
 			}
 		})
@@ -85,7 +121,7 @@ func TestSplitIntoSections(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    ChangelogSections
+		want    Sections
 		wantErr bool
 	}{
 		{
@@ -93,7 +129,7 @@ func TestSplitIntoSections(t *testing.T) {
 			args: args{
 				lines: []string{},
 			},
-			want:    ChangelogSections{},
+			want:    Sections{},
 			wantErr: true,
 		},
 		{
@@ -101,7 +137,7 @@ func TestSplitIntoSections(t *testing.T) {
 			args: args{
 				lines: []string{"# Change Log", "", "## [0.1.0]", "### feat", "- feat: foo", "", "### fix", "- fix: bar"},
 			},
-			want: ChangelogSections{
+			want: Sections{
 				Boilerplate: "# Change Log\n\n",
 				Body:        "## [0.1.0]\n### feat\n- feat: foo\n\n### fix\n- fix: bar",
 			},
