@@ -131,6 +131,22 @@ func fetchCommitsBetween(
 		return nil, err
 	}
 
+	tagCommits, err := processCommits(beforeCommit, afterCommit, commits, allTags, unique, excludes)
+	if err != nil {
+		return nil, err
+	}
+
+	return tagCommits, nil
+}
+
+func processCommits(
+	beforeCommit *object.Commit,
+	afterCommit *object.Commit,
+	commits object.CommitIter,
+	allTags map[string]*TagMeta,
+	unique bool,
+	excludes []*regexp.Regexp,
+) (*[]TagCommits, error) {
 	var tagCommits []TagCommits
 
 	currentTag := TagMeta{
@@ -158,7 +174,7 @@ func fetchCommitsBetween(
 	// skip commits until reaching beforeTag
 	skip := beforeCommit != nil
 
-	err = commits.ForEach(func(c *object.Commit) error {
+	err := commits.ForEach(func(c *object.Commit) error {
 		if beforeCommit != nil && c.Hash == beforeCommit.Hash {
 			skip = false
 		}
