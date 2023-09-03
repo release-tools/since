@@ -44,9 +44,9 @@ var initCmd = &cobra.Command{
 		)
 		initChangelog(
 			changelogFile,
-			vcs.TagOrderBy(generateArgs.orderBy),
-			generateArgs.repoPath,
-			generateArgs.unique,
+			vcs.TagOrderBy(initArgs.orderBy),
+			initArgs.repoPath,
+			initArgs.unique,
 		)
 	},
 }

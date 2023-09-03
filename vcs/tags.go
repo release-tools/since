@@ -45,6 +45,7 @@ func GetEarliestTag(repoPath string, orderBy TagOrderBy) (string, error) {
 			return "", err
 		}
 		earliestTag = tag
+		logrus.Debugf("earliest tag: %s", earliestTag)
 	}
 	return earliestTag, nil
 }

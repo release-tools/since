@@ -241,6 +241,10 @@ func InitChangelog(
 	}
 
 	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, "", unique)
+	err = WriteChangelog(changelogFile, updated)
+	if err != nil {
+		return "", fmt.Errorf("failed to write to initialised changelog: %s: %v", changelogFile, err)
+	}
 
 	return updated, nil
 }
