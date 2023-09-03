@@ -57,6 +57,7 @@ func GetLatestTag(repoPath string, orderBy TagOrderBy) (string, error) {
 			return "", err
 		}
 		latestTag = tag
+		logrus.Debugf("most recent tag: %s", latestTag)
 	}
 	return latestTag, nil
 }

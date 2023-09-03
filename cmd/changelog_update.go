@@ -67,7 +67,12 @@ func updateChangelog(
 		panic(err)
 	}
 
-	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", "", unique)
+	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
+	if err != nil {
+		panic(err)
+	}
+
+	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
 	err = changelog.WriteChangelog(changelogFile, updated)
 	if err != nil {
 		panic(fmt.Errorf("failed to update changelog: %w", err))

@@ -68,7 +68,7 @@ func RenderCommits(commits *[]vcs.TagCommits, groupIntoSections bool, unreleased
 		if len(output) > 0 {
 			output += "\n\n"
 		}
-		output += "## [" + versionName + "] - " + tagCommits.Date.Format("2006-01-02") + "\n"
+		output += "## [" + versionName + "] - " + tagCommits.Date.Format("2006-01-02") + "\n\n"
 		categorised := convcommits.CategoriseByType(tagCommits.Commits)
 		if groupIntoSections {
 			categorised = groupBySection(categorised)
@@ -116,13 +116,12 @@ func SplitIntoSections(lines []string) (Sections, error) {
 			}
 		}
 	}
-	if firstH2 == 0 {
-		return Sections{}, fmt.Errorf("could not find h2 in changelog")
-	}
 
 	var body string
-	for _, line := range lines[firstH2:] {
-		body += line + "\n"
+	if firstH2 > 0 {
+		for _, line := range lines[firstH2:] {
+			body += line + "\n"
+		}
 	}
 	sections := Sections{
 		Boilerplate: boilerplate,
@@ -175,7 +174,7 @@ func GetUpdatedChangelog(
 	afterTag string,
 	unique bool,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
-	commits, err := vcs.FetchCommitsByTag(config, repoPath, beforeTag, afterTag, orderBy, unique)
+	commits, err := vcs.FetchCommitsByTag(config, repoPath, beforeTag, afterTag, unique)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
 	}
@@ -236,17 +235,12 @@ func InitChangelog(
 		return "", fmt.Errorf("failed to initialise changelog: %s: %v", changelogFile, err)
 	}
 
-	earliestTag, err := vcs.GetEarliestTag(repoPath, orderBy)
-	if err != nil {
-		return "", fmt.Errorf("failed to get earliest tag: %v", err)
-	}
-
 	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
 	if err != nil {
 		return "", fmt.Errorf("failed to get latest tag: %v", err)
 	}
 
-	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, earliestTag, unique)
+	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, "", unique)
 
 	return updated, nil
 }

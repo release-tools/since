@@ -83,7 +83,18 @@ func printVersion(
 		panic(err)
 	}
 
-	commits, err := vcs.FetchCommitMessages(config, repoPath, "", tag, orderBy, unique)
+	var afterTag string
+	if tag == "" {
+		latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
+		if err != nil {
+			panic(err)
+		}
+		afterTag = latestTag
+	} else {
+		afterTag = tag
+	}
+
+	commits, err := vcs.FetchCommitMessages(config, repoPath, "", afterTag, unique)
 	if err != nil {
 		panic(err)
 	}

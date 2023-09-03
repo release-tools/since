@@ -70,6 +70,12 @@ func generateChangelog(
 	if err != nil {
 		panic(err)
 	}
-	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", "", unique)
+
+	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
+	if err != nil {
+		panic(err)
+	}
+
+	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
 	fmt.Println(updated)
 }

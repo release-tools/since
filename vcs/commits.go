@@ -33,16 +33,15 @@ const UnreleasedVersionName = "Unreleased"
 
 // FetchCommitMessages returns a slice of commit messages between the given tags.
 // If beforeTag is empty, then HEAD is used.
-// If afterTag is empty, the most recent tag is used.
+// If afterTag is empty, the oldest commit is used.
 func FetchCommitMessages(
 	config cfg.SinceConfig,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-	orderBy TagOrderBy,
 	unique bool,
 ) ([]string, error) {
-	commits, err := FetchCommitsByTag(config, repoPath, beforeTag, afterTag, orderBy, unique)
+	commits, err := FetchCommitsByTag(config, repoPath, beforeTag, afterTag, unique)
 	if err != nil {
 		return nil, err
 	}
@@ -52,23 +51,14 @@ func FetchCommitMessages(
 // FetchCommitsByTag returns a map of commit messages between the given tags.
 // The key is the tag metadata, and the value is a slice of commit messages.
 // If beforeTag is empty, then HEAD is used.
-// If afterTag is empty, the most recent tag is used.
+// If afterTag is empty, the oldest commit is used.
 func FetchCommitsByTag(
 	config cfg.SinceConfig,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-	orderBy TagOrderBy,
 	unique bool,
 ) (*[]TagCommits, error) {
-	if afterTag == "" {
-		latestTag, err := GetLatestTag(repoPath, orderBy)
-		if err != nil {
-			return nil, err
-		}
-		logrus.Debugf("most recent tag: %s", latestTag)
-		afterTag = latestTag
-	}
 	commits, err := fetchCommitsBetween(config, repoPath, beforeTag, afterTag, unique)
 	if err != nil {
 		return nil, err
@@ -92,7 +82,7 @@ func FlattenCommits(tags *[]TagCommits) []string {
 
 // fetchCommitsBetween returns a slice of commit messages between the given tags.
 // If beforeTag is empty, then HEAD is used.
-// If afterTag is empty, the most recent tag is used.
+// If afterTag is empty, the oldest commit is used.
 func fetchCommitsBetween(
 	config cfg.SinceConfig,
 	repoPath string,
@@ -110,25 +100,28 @@ func fetchCommitsBetween(
 		return nil, err
 	}
 
-	var beforeTagCommit *object.Commit
+	var beforeCommit *object.Commit
 	if beforeTag != "" {
 		beforeTagMeta, err := r.Tag(beforeTag)
 		if err != nil {
 			return nil, err
 		}
-		beforeTagCommit, err = r.CommitObject(beforeTagMeta.Hash())
+		beforeCommit, err = r.CommitObject(beforeTagMeta.Hash())
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	afterTagMeta, err := r.Tag(afterTag)
-	if err != nil {
-		return nil, err
-	}
-	afterTagCommit, err := r.CommitObject(afterTagMeta.Hash())
-	if err != nil {
-		return nil, err
+	var afterCommit *object.Commit
+	if afterTag != "" {
+		afterTagMeta, err := r.Tag(afterTag)
+		if err != nil {
+			return nil, err
+		}
+		afterCommit, err = r.CommitObject(afterTagMeta.Hash())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	allTags, err := listAllTags(r)
@@ -145,12 +138,24 @@ func fetchCommitsBetween(
 		Date: time.Now(),
 	}
 
-	// skip commits until reaching beforeTag
-	skip := beforeTagCommit != nil
-
 	var commitMessages []string
+
+	appendCurrentTag := func() {
+		if len(commitMessages) > 0 {
+			tag := TagCommits{
+				TagMeta: currentTag,
+				Commits: commitMessages,
+			}
+			tagCommits = append(tagCommits, tag)
+			commitMessages = nil
+		}
+	}
+
+	// skip commits until reaching beforeTag
+	skip := beforeCommit != nil
+
 	err = commits.ForEach(func(c *object.Commit) error {
-		if beforeTagCommit != nil && c.Hash == beforeTagCommit.Hash {
+		if beforeCommit != nil && c.Hash == beforeCommit.Hash {
 			skip = false
 		}
 		if skip {
@@ -159,19 +164,12 @@ func fetchCommitsBetween(
 
 		tagCommit := allTags[c.Hash.String()]
 		if tagCommit != nil {
-			if len(commitMessages) > 0 {
-				tag := TagCommits{
-					TagMeta: currentTag,
-					Commits: commitMessages,
-				}
-				tagCommits = append(tagCommits, tag)
-				commitMessages = nil
-			}
+			appendCurrentTag()
 			currentTag = *tagCommit
 		}
 
 		// stop after appending tag commits for previous tag
-		if c.Hash == afterTagCommit.Hash {
+		if afterCommit != nil && c.Hash == afterCommit.Hash {
 			return storer.ErrStop
 		}
 
@@ -187,6 +185,10 @@ func fetchCommitsBetween(
 	if err != nil {
 		return nil, err
 	}
+
+	// final tag
+	appendCurrentTag()
+
 	if unique {
 		commitMessages = stringutil.Unique(commitMessages)
 	}
