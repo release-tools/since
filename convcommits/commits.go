@@ -25,15 +25,18 @@ func CategoriseByType(commits []string) map[string][]string {
 	categorised := make(map[string][]string)
 	for _, commit := range commits {
 		parts := strings.Split(commit, ":")
-		if len(parts) < 2 {
-			continue
-		}
-		prefix := strings.TrimSpace(parts[0])
-		if strings.HasSuffix(prefix, "!") {
-			prefix = "BREAKING CHANGE"
-		}
-		if strings.Contains(prefix, "(") {
-			prefix = strings.Split(prefix, "(")[0]
+
+		var prefix string
+		if len(parts) >= 2 {
+			prefix = strings.TrimSpace(parts[0])
+			if strings.HasSuffix(prefix, "!") {
+				prefix = "BREAKING CHANGE"
+			}
+			if strings.Contains(prefix, "(") {
+				prefix = strings.Split(prefix, "(")[0]
+			}
+		} else {
+			prefix = ""
 		}
 
 		category := categorised[prefix]
