@@ -75,9 +75,9 @@ func FetchCommitsByTag(
 	}
 
 	if logrus.IsLevelEnabled(logrus.TraceLevel) {
-		logrus.Tracef("commits: %v", commits)
+		logrus.Tracef("commits by tag: %v", commits)
 	} else {
-		logrus.Debugf("fetched %d commits\n", len(*commits))
+		logrus.Debugf("fetched %d tags\n", len(*commits))
 	}
 	return commits, nil
 }
@@ -139,6 +139,7 @@ func fetchCommitsBetween(
 	}
 
 	var tagCommits []TagCommits
+
 	currentTag := TagMeta{
 		Name: UnreleasedVersionName,
 		Date: time.Now(),
@@ -161,12 +162,14 @@ func fetchCommitsBetween(
 
 		tagCommit := allTags[c.Hash.String()]
 		if tagCommit != nil {
-			tag := TagCommits{
-				TagMeta: currentTag,
-				Commits: commitMessages,
+			if len(commitMessages) > 0 {
+				tag := TagCommits{
+					TagMeta: currentTag,
+					Commits: commitMessages,
+				}
+				tagCommits = append(tagCommits, tag)
+				commitMessages = nil
 			}
-			tagCommits = append(tagCommits, tag)
-			commitMessages = nil
 			currentTag = *tagCommit
 		}
 

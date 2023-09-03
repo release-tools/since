@@ -171,23 +171,29 @@ func GetUpdatedChangelog(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
+	beforeTag string,
 	afterTag string,
 	unique bool,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
-	commits, err := vcs.FetchCommitsByTag(config, repoPath, "", afterTag, orderBy, unique)
+	commits, err := vcs.FetchCommitsByTag(config, repoPath, beforeTag, afterTag, orderBy, unique)
 	if err != nil {
 		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
 	}
 
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
 
-	// determine next version only based on unreleased commits
-	unreleasedCommits := (*commits)[0].Commits
+	var nextVersion string
+	if beforeTag == "" {
+		// determine next version only based on unreleased commits
+		unreleasedCommits := (*commits)[0].Commits
 
-	// always disable vPrefix for changelog heading
-	nextVersion := semver.GetNextVersion(currentVersion, false, unreleasedCommits)
-	if nextVersion == "" {
-		panic("Could not determine next version")
+		// always disable vPrefix for changelog heading
+		nextVersion = semver.GetNextVersion(currentVersion, false, unreleasedCommits)
+		if nextVersion == "" {
+			panic("Could not determine next version")
+		}
+	} else {
+		nextVersion = vcs.UnreleasedVersionName
 	}
 
 	rendered := RenderCommits(commits, true, nextVersion)
@@ -235,7 +241,12 @@ func InitChangelog(
 		return "", fmt.Errorf("failed to get earliest tag: %v", err)
 	}
 
-	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, earliestTag, unique)
+	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
+	if err != nil {
+		return "", fmt.Errorf("failed to get latest tag: %v", err)
+	}
+
+	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, earliestTag, unique)
 
 	return updated, nil
 }
