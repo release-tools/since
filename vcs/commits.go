@@ -142,6 +142,10 @@ func fetchCommitsBetween(
 
 	appendCurrentTag := func() {
 		if len(commitMessages) > 0 {
+			if unique {
+				commitMessages = stringutil.Unique(commitMessages)
+			}
+
 			tag := TagCommits{
 				TagMeta: currentTag,
 				Commits: commitMessages,
@@ -189,9 +193,6 @@ func fetchCommitsBetween(
 	// final tag
 	appendCurrentTag()
 
-	if unique {
-		commitMessages = stringutil.Unique(commitMessages)
-	}
 	return &tagCommits, nil
 }
 
