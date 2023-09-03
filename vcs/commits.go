@@ -156,9 +156,6 @@ func fetchCommitsBetween(
 		if skip {
 			return nil
 		}
-		if c.Hash == afterTagCommit.Hash {
-			return storer.ErrStop
-		}
 
 		tagCommit := allTags[c.Hash.String()]
 		if tagCommit != nil {
@@ -171,6 +168,11 @@ func fetchCommitsBetween(
 				commitMessages = nil
 			}
 			currentTag = *tagCommit
+		}
+
+		// stop after appending tag commits for previous tag
+		if c.Hash == afterTagCommit.Hash {
+			return storer.ErrStop
 		}
 
 		longMessage := c.Message
