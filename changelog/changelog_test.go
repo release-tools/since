@@ -73,7 +73,7 @@ func TestRenderCommits(t *testing.T) {
 				commits:           &fewCommits,
 				groupIntoSections: false,
 			},
-			want: `## [Unreleased] - 2023-08-28
+			want: `## [Unreleased]
 ### feat
 - feat: foo
 
@@ -86,7 +86,7 @@ func TestRenderCommits(t *testing.T) {
 				commits:           &manyCommits,
 				groupIntoSections: true,
 			},
-			want: `## [Unreleased] - 2023-08-28
+			want: `## [Unreleased]
 ### Added
 - feat: foo
 
@@ -119,18 +119,16 @@ func TestSplitIntoSections(t *testing.T) {
 		lines []string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    Sections
-		wantErr bool
+		name string
+		args args
+		want Sections
 	}{
 		{
 			name: "no sections",
 			args: args{
 				lines: []string{},
 			},
-			want:    Sections{},
-			wantErr: true,
+			want: Sections{},
 		},
 		{
 			name: "split into sections",
@@ -145,11 +143,7 @@ func TestSplitIntoSections(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := SplitIntoSections(tt.args.lines)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SplitIntoSections() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := SplitIntoSections(tt.args.lines)
 			if !reflect.DeepEqual(got.Boilerplate, tt.want.Boilerplate) {
 				t.Errorf("SplitIntoSections() Boilerplate got = %v, want %v", got, tt.want)
 			}

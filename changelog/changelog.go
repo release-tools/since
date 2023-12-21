@@ -55,20 +55,30 @@ func RenderCommits(commits *[]vcs.TagCommits, groupIntoSections bool, unreleased
 	}
 	var output string
 	for _, tagCommits := range *commits {
+		var unreleased bool
 		var versionName string
 		if tagCommits.Name == vcs.UnreleasedVersionName {
+			unreleased = true
 			versionName = unreleasedVersionName
 		} else {
+			unreleased = false
 			version := tagCommits.Name
 			if strings.HasPrefix(version, "v") {
 				version = strings.TrimPrefix(version, "v")
 			}
 			versionName = version
 		}
+
+		// write version header
 		if len(output) > 0 {
 			output += "\n\n"
 		}
-		output += "## [" + versionName + "] - " + tagCommits.Date.Format("2006-01-02") + "\n\n"
+		output += "## [" + versionName + "]"
+		if !unreleased {
+			output += " - " + tagCommits.Date.Format("2006-01-02")
+		}
+		output += "\n"
+
 		categorised := convcommits.CategoriseByType(tagCommits.Commits)
 		if groupIntoSections {
 			categorised = groupBySection(categorised)
@@ -95,7 +105,7 @@ func RenderCommits(commits *[]vcs.TagCommits, groupIntoSections bool, unreleased
 
 // SplitIntoSections takes a slice of changelog lines and splits it into
 // boilerplate and body sections.
-func SplitIntoSections(lines []string) (Sections, error) {
+func SplitIntoSections(lines []string) Sections {
 	var boilerplate string
 
 	// find the first h2
@@ -127,7 +137,7 @@ func SplitIntoSections(lines []string) (Sections, error) {
 		Boilerplate: boilerplate,
 		Body:        strings.TrimSpace(body),
 	}
-	return sections, nil
+	return sections
 }
 
 // groupBySection maps the commit prefixes to sections.
@@ -201,7 +211,7 @@ func GetUpdatedChangelog(
 	if err != nil {
 		panic(fmt.Errorf("failed to read changelog file: %s: %v", changelogFile, err))
 	}
-	sections, err := SplitIntoSections(lines)
+	sections := SplitIntoSections(lines)
 	if err != nil {
 		panic(err)
 	}
