@@ -6,6 +6,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/rogpeppe/go-internal/semver"
 	"github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -78,6 +79,12 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 	var candidateTag *plumbing.Reference
 	var candidateCommit *object.Commit
 	err = tags.ForEach(func(t *plumbing.Reference) error {
+		commit, err := r.CommitObject(t.Hash())
+		if err != nil {
+			logrus.Tracef("failed to get commit object for tag %s: %v", t.Name().Short(), err)
+			return nil
+		}
+
 		candidate := false
 		if candidateTag == nil {
 			candidate = true
@@ -91,14 +98,8 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 				case endTagEarliest:
 					candidate = t.Name().Short() < candidateTag.Name().Short()
 				}
-				break
 
 			case TagOrderCommitDate:
-				commit, err := r.CommitObject(t.Hash())
-				if err != nil {
-					logrus.Tracef("failed to get commit object for tag %s: %v", t.Name().Short(), err)
-					return nil
-				}
 				var commitDateMatch bool
 				switch endType {
 				case endTagLatest:
@@ -107,17 +108,15 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 					commitDateMatch = candidateCommit == nil || commit.Committer.When.Before(candidateCommit.Committer.When)
 				}
 				if commitDateMatch {
-					candidateCommit = commit
 					candidate = true
 				}
-				break
 
 			case TagOrderSemver:
 				switch endType {
 				case endTagLatest:
-					candidate = semver.Compare(t.Name().Short(), candidateTag.Name().Short()) > 0
+					candidate = compareSemantically(t, candidateTag) > 0
 				case endTagEarliest:
-					candidate = semver.Compare(t.Name().Short(), candidateTag.Name().Short()) < 0
+					candidate = compareSemantically(t, candidateTag) < 0
 				}
 
 			default:
@@ -126,6 +125,7 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 		}
 
 		if candidate {
+			candidateCommit = commit
 			candidateTag = t
 		}
 		return nil
@@ -137,6 +137,18 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 	tagName := candidateTag.Name().Short()
 	logrus.Tracef("%s tag ordered by %s: %s", endType, orderBy, tagName)
 	return tagName, nil
+}
+
+func compareSemantically(v *plumbing.Reference, w *plumbing.Reference) int {
+	a := v.Name().Short()
+	if !strings.HasPrefix("v", a) {
+		a = "v" + a
+	}
+	b := w.Name().Short()
+	if !strings.HasPrefix("v", b) {
+		b = "v" + b
+	}
+	return semver.Compare(a, b)
 }
 
 // TagRelease tags the repository with the given version.
