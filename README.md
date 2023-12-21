@@ -42,19 +42,19 @@ Generates a new changelog based on an existing changelog file,
 adding a new release section using the commits since the last release,
 then prints it to stdout.
 
-```bash
+```
 Usage:
-since changelog generate [flags]
+  since changelog generate [flags]
 
 Flags:
--g, --git-repo string   Path to git repository (default ".")
--h, --help              help for generate
--o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+  -g, --git-repo string   Path to git repository (default ".")
+  -h, --help              help for generate
+  -o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
 
 Global Flags:
--c, --changelog string   Path to changelog file (default "CHANGELOG.md")
--l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
--q, --quiet              Disable logging (useful for scripting)
+  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
+  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet              Disable logging (useful for scripting)
 ```
 
 ---
@@ -64,19 +64,19 @@ Global Flags:
 Updates the existing changelog file with a new release section,
 using the commits since the last release.
 
-```bash
+```
 Usage:
-since changelog update [flags]
+  since changelog update [flags]
 
 Flags:
--g, --git-repo string   Path to git repository (default ".")
--h, --help              help for update
--o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+  -g, --git-repo string   Path to git repository (default ".")
+  -h, --help              help for update
+  -o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
 
 Global Flags:
--c, --changelog string   Path to changelog file (default "CHANGELOG.md")
--l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
--q, --quiet              Disable logging (useful for scripting)
+  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
+  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet              Disable logging (useful for scripting)
 ```
 
 ---
@@ -86,7 +86,7 @@ Global Flags:
 Extracts changes for a given version in a changelog file.
 If no version is specified, the most recent version is used.
 
-```bash
+```
 Usage:
   since changelog extract [flags]
 
@@ -107,7 +107,7 @@ Global Flags:
 
 Initialises a new changelog file based on the specified git repository.
 
-```bash
+```
 Usage:
   since changelog init [flags]
 
@@ -116,6 +116,11 @@ Flags:
   -h, --help              help for init
   -o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
       --unique            De-duplicate commit messages (default true)
+
+Global Flags:
+  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
+  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet              Disable logging (useful for scripting)
 ```
 
 ---
@@ -125,19 +130,19 @@ Flags:
 Reads the commit history for the current git repository, starting
 from the most recent tag. Lists the commits categorised by their type.
 
-```bash
+```
 Usage:
-since project changes [flags]
+  since project changes [flags]
 
 Flags:
--h, --help   help for changes
+  -h, --help   help for changes
 
 Global Flags:
--g, --git-repo string    Path to git repository (default ".")
--l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
--o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
--q, --quiet              Disable logging (useful for scripting)
--t, --tag string         Include commits after this tag
+  -g, --git-repo string    Path to git repository (default ".")
+  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -o, --order-by string    How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+  -q, --quiet              Disable logging (useful for scripting)
+  -t, --tag string         Include commits after this tag
 ```
 
 ---
@@ -151,7 +156,7 @@ based on the changes.
 Changes influence the version according to
 [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
-```bash
+```
 Usage:
   since project version [flags]
 
@@ -177,7 +182,7 @@ using the commits since the last release.
 The changelog is then committed and a new tag is created
 with the new version.
 
-```bash
+```
 Usage:
   since project release [flags]
 
@@ -195,6 +200,8 @@ Global Flags:
 
 ## Example
 
+Given a changelog file:
+
 ```bash
 $ cat CHANGELOG.md
 # Change Log
@@ -206,7 +213,11 @@ $ cat CHANGELOG.md
 ## [0.1.0] - 2023-03-04
 ### Added
 - feat: another change.
+```
 
+Print the changes for version `0.1.0`:
+
+```bash
 $ since changelog extract --version 0.1.0
 ## [0.1.0] - 2023-03-04
 ### Added
