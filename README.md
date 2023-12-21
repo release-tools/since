@@ -28,6 +28,7 @@ go install github.com/release-tools/since
 - [generate](#changelog-generate)
 - [update](#changelog-update)
 - [extract](#changelog-extract)
+- [init](#changelog-init)
 
 **Project** - List the changes since the last release in the project repository, or determine the next semantic version based on those changes.
 - [changes](#project-changes)
