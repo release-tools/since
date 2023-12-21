@@ -21,6 +21,7 @@ import (
 	"github.com/release-tools/since/cfg"
 	"github.com/release-tools/since/changelog"
 	"github.com/release-tools/since/vcs"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -34,12 +35,11 @@ var initArgs struct {
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialise a new changelog file",
-	Long:  `Initialises a new changelog file with a placeholder entry.`,
+	Long:  `Initialises a new changelog file based on the specified git repository.`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		workingDir := getWorkingDir()
 		changelogFile := changelog.ResolveChangelogFile(
-			workingDir,
+			initArgs.repoPath,
 			changelogArgs.changelogFile,
 		)
 		initChangelog(
@@ -74,4 +74,5 @@ func initChangelog(
 		panic(err)
 	}
 	fmt.Println(newChangelog)
+	logrus.Infof("initialised changelog file '%s'", changelogFile)
 }

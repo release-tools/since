@@ -103,6 +103,23 @@ Global Flags:
 
 ---
 
+### `changelog init`
+
+Initialises a new changelog file based on the specified git repository.
+
+```bash
+Usage:
+  since changelog init [flags]
+
+Flags:
+  -g, --git-repo string   Path to git repository (default ".")
+  -h, --help              help for init
+  -o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
+      --unique            De-duplicate commit messages (default true)
+```
+
+---
+
 ### `project changes`
 
 Reads the commit history for the current git repository, starting
