@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.15.0] - 2023-12-21
+### Added
+- feat: adds changelog init command.
+- feat: changelog initialisation defaults file path to repo root.
+- feat: supports commit messages that do not follow conventional commit format.
+
+### Changed
+- refactor: factors out commit processor.
+
+### Fixed
+- fix: deduplicate commit messages within a version.
+- fix: don't add date to unreleased version header.
+- fix: don't ignore changelog init flags.
+- fix: initial changelog should include first tag.
+- fix: semantic version comparison should support tags without 'v' prefix.
+- fix: skip unreleased commits when initialising changelog.
+- fix: stop after appending tag commits for previous tag.
+
 ## [0.14.2] - 2023-07-30
 ### Fixed
 - fix: removes goreleaser replacements config.
