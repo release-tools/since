@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.15.1]
+### Changed
+- docs: adds link to changelog init command.
+- docs: improves usage instructions.
+- docs: moves example to examples dir.
+
+### Fixed
+- fix: correct tag prefix check.
+
 ## [0.15.0] - 2023-12-21
 ### Added
 - feat: adds changelog init command.
