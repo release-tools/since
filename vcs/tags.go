@@ -79,6 +79,8 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 	var candidateTag *plumbing.Reference
 	var candidateCommit *object.Commit
 	err = tags.ForEach(func(t *plumbing.Reference) error {
+		logrus.Tracef("checking tag %s", t.Name().Short())
+
 		commit, err := r.CommitObject(t.Hash())
 		if err != nil {
 			logrus.Tracef("failed to get commit object for tag %s: %v", t.Name().Short(), err)
@@ -141,11 +143,11 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 
 func compareSemantically(v *plumbing.Reference, w *plumbing.Reference) int {
 	a := v.Name().Short()
-	if !strings.HasPrefix("v", a) {
+	if !strings.HasPrefix(a, "v") {
 		a = "v" + a
 	}
 	b := w.Name().Short()
-	if !strings.HasPrefix("v", b) {
+	if !strings.HasPrefix(b, "v") {
 		b = "v" + b
 	}
 	return semver.Compare(a, b)
