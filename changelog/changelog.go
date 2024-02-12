@@ -201,6 +201,14 @@ func GetUpdatedChangelog(
 		if nextVersion == "" {
 			panic("Could not determine next version")
 		}
+
+		// update unreleased version name to next version to ensure date is rendered
+		for _, commit := range *commits {
+			if commit.Name == vcs.UnreleasedVersionName {
+				commit.Name = nextVersion
+				break
+			}
+		}
 	} else {
 		nextVersion = vcs.UnreleasedVersionName
 	}
