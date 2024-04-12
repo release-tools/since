@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.15.2] - 2024-04-12
+### Changed
+- docs: adds missing release date.
+- test: improves coverage for changelog generation.
+
+### Fixed
+- fix: improves error trapping when there are no changes since start tag.
+- fix: numbered releases should include date in changelog heading.
+
 ## [0.15.1] - 2023-12-30
 ### Changed
 - docs: adds link to changelog init command.
