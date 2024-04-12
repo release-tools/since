@@ -18,6 +18,7 @@ package changelog
 
 import (
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/release-tools/since/cfg"
 	"github.com/release-tools/since/vcs"
@@ -160,7 +161,25 @@ func TestSplitIntoSections(t *testing.T) {
 }
 
 func TestGetUpdatedChangelog(t *testing.T) {
-	repoDir := createTestRepo(t)
+	repoWithTagsAndNoUnreleasedChanges := createTestRepo(t)
+
+	repoWithTagsAndUnreleasedChanges := createTestRepo(t)
+	commitChange(
+		t,
+		repoWithTagsAndUnreleasedChanges,
+		"CHANGELOG.md",
+		changelogTemplate,
+		"docs: adds changelog",
+		time.Now(),
+	)
+	unreleasedCommitSha := commitChange(
+		t,
+		repoWithTagsAndUnreleasedChanges,
+		"README.md",
+		"unreleased change\r\n",
+		"feat: unreleased change",
+		time.Now(),
+	)
 
 	type args struct {
 		config        cfg.SinceConfig
@@ -183,13 +202,45 @@ func TestGetUpdatedChangelog(t *testing.T) {
 			name: "no changes",
 			args: args{
 				orderBy:  vcs.TagOrderSemver,
-				repoPath: repoDir,
+				repoPath: repoWithTagsAndNoUnreleasedChanges,
 				afterTag: "0.1.0",
 			},
 			wantMetadata:         vcs.ReleaseMetadata{},
 			wantUpdatedChangelog: "",
 			wantErr:              true,
 			errMessage:           "no changes since start tag",
+		},
+		{
+			name: "unreleased changes",
+			args: args{
+				changelogFile: path.Join(repoWithTagsAndUnreleasedChanges, "CHANGELOG.md"),
+				orderBy:       vcs.TagOrderSemver,
+				repoPath:      repoWithTagsAndUnreleasedChanges,
+				afterTag:      "0.1.0",
+			},
+			wantMetadata: vcs.ReleaseMetadata{
+				NewVersion: "0.2.0",
+				OldVersion: "0.1.0",
+				RepoPath:   repoWithTagsAndUnreleasedChanges,
+				Sha:        unreleasedCommitSha.String(),
+				VPrefix:    false,
+			},
+			wantUpdatedChangelog: `# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0]
+### Added
+- feat: unreleased change
+
+### Changed
+- docs: adds changelog
+
+`,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -220,70 +271,70 @@ func createTestRepo(t *testing.T) string {
 	repoDir := t.TempDir()
 	t.Logf("created repo dir: %s", repoDir)
 
-	repoPathToReadme := path.Join(repoDir, "README.md")
-	readme, err := os.Create(repoPathToReadme)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	repo, err := git.PlainInit(repoDir, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	w, err := repo.Worktree()
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	_, err = readme.WriteString("first update")
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = w.Add("README.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	c1sig := &object.Signature{
-		Name:  "user",
-		Email: "user@example.com",
-		When:  time.UnixMilli(time.Now().UnixMilli() - 10000),
-	}
-	c1, err := w.Commit("first update", &git.CommitOptions{
-		Author:    c1sig,
-		Committer: c1sig,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	c1 := commitChange(t, repoDir, "README.md", "first update\r\n", "feat: first update", time.UnixMilli(time.Now().UnixMilli()-10000))
 	_, err = repo.CreateTag("0.0.1", c1, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = readme.WriteString("second update")
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = w.Add("README.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	c2Sig := &object.Signature{
-		Name:  "user",
-		Email: "user@example.com",
-		When:  time.Now(),
-	}
-	c2, err := w.Commit("second update", &git.CommitOptions{
-		Author:    c2Sig,
-		Committer: c2Sig,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	c2 := commitChange(t, repoDir, "README.md", "second update\r\n", "feat: second update", time.Now())
 	_, err = repo.CreateTag("0.1.0", c2, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	return repoDir
+}
+
+func commitChange(
+	t *testing.T,
+	repoDir string,
+	filename string,
+	appendText string,
+	msg string,
+	when time.Time,
+) plumbing.Hash {
+	repo, err := git.PlainOpen(repoDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	repoPathToFile := path.Join(repoDir, filename)
+	file, err := os.OpenFile(repoPathToFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+
+	w, err := repo.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = file.WriteString(appendText)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = w.Add(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	commitSig := &object.Signature{
+		Name:  "user",
+		Email: "user@example.com",
+		When:  when,
+	}
+	commit, err := w.Commit(msg, &git.CommitOptions{
+		Author:    commitSig,
+		Committer: commitSig,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return commit
 }

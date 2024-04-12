@@ -202,7 +202,7 @@ func GetUpdatedChangelog(
 		// always disable vPrefix for changelog heading
 		nextVersion = semver.GetNextVersion(currentVersion, false, unreleasedCommits)
 		if nextVersion == "" {
-			panic("Could not determine next version")
+			return vcs.ReleaseMetadata{}, "", fmt.Errorf("could not determine next version")
 		}
 	} else {
 		nextVersion = vcs.UnreleasedVersionName
@@ -212,18 +212,18 @@ func GetUpdatedChangelog(
 
 	lines, err := ReadFile(changelogFile)
 	if err != nil {
-		panic(fmt.Errorf("failed to read changelog file: %s: %v", changelogFile, err))
+		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to read changelog file: %s: %v", changelogFile, err)
 	}
 	sections := SplitIntoSections(lines)
 	if err != nil {
-		panic(err)
+		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to split changes into sections: %v", err)
 	}
 
 	output := sections.Boilerplate + rendered + "\n\n" + sections.Body
 
 	sha, err := vcs.GetHeadSha(repoPath)
 	if err != nil {
-		panic(fmt.Errorf("failed to get head sha: %v", err))
+		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to get head sha: %v", err)
 	}
 	metadata = vcs.ReleaseMetadata{
 		OldVersion: currentVersion,

@@ -77,7 +77,11 @@ func release(
 		panic(err)
 	}
 
-	metadata, updatedChangelog := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
+	metadata, updatedChangelog, err := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
+	if err != nil {
+		panic(err)
+	}
+
 	version := metadata.NewVersion
 	if metadata.VPrefix {
 		version = "v" + version

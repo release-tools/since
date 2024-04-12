@@ -76,6 +76,9 @@ func generateChangelog(
 		panic(err)
 	}
 
-	_, updated := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
+	_, updated, err := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(updated)
 }
