@@ -183,10 +183,13 @@ func GetUpdatedChangelog(
 	beforeTag string,
 	afterTag string,
 	unique bool,
-) (metadata vcs.ReleaseMetadata, updatedChangelog string) {
+) (metadata vcs.ReleaseMetadata, updatedChangelog string, err error) {
 	commits, err := vcs.FetchCommitsByTag(config, repoPath, beforeTag, afterTag, unique)
 	if err != nil {
-		panic(fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err))
+		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err)
+	}
+	if len(*commits) == 0 {
+		return vcs.ReleaseMetadata{}, "", fmt.Errorf("no changes since start tag")
 	}
 
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
@@ -229,7 +232,7 @@ func GetUpdatedChangelog(
 		Sha:        sha,
 		VPrefix:    vPrefix,
 	}
-	return metadata, output
+	return metadata, output, nil
 }
 
 // InitChangelog creates a new changelog file with a placeholder entry.
@@ -250,7 +253,11 @@ func InitChangelog(
 		return "", fmt.Errorf("failed to get latest tag: %v", err)
 	}
 
-	_, updated := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, "", unique)
+	_, updated, err := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, "", unique)
+	if err != nil {
+		return "", fmt.Errorf("failed to get updated changelog: %v", err)
+	}
+
 	err = WriteChangelog(changelogFile, updated)
 	if err != nil {
 		return "", fmt.Errorf("failed to write to initialised changelog: %s: %v", changelogFile, err)
