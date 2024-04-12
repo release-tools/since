@@ -1,6 +1,7 @@
 package vcs
 
 import (
+	"errors"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -81,7 +82,13 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 	err = tags.ForEach(func(t *plumbing.Reference) error {
 		logrus.Tracef("checking tag %s", t.Name().Short())
 
-		commit, err := r.CommitObject(t.Hash())
+		commitHash, err := getCommitHashForTag(t, r)
+		if err != nil {
+			logrus.Tracef("failed to determine tag type for %s: %v", t.Name().Short(), err)
+			return err
+		}
+
+		commit, err := r.CommitObject(commitHash)
 		if err != nil {
 			logrus.Tracef("failed to get commit object for tag %s: %v", t.Name().Short(), err)
 			return nil
@@ -139,6 +146,23 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 	tagName := candidateTag.Name().Short()
 	logrus.Tracef("%s tag ordered by %s: %s", endType, orderBy, tagName)
 	return tagName, nil
+}
+
+// getCommitHashForTag determines the SHA of the commit for the given tag,
+// handling both annotated and lightweight tags
+func getCommitHashForTag(t *plumbing.Reference, r *git.Repository) (commitHash plumbing.Hash, err error) {
+	annotation, err := r.TagObject(t.Hash())
+	switch {
+	case err == nil:
+		// annotated tag
+		commitHash = annotation.Target
+	case errors.Is(err, plumbing.ErrObjectNotFound):
+		// lightweight tag
+		commitHash = t.Hash()
+	default:
+		return plumbing.Hash{}, err
+	}
+	return commitHash, nil
 }
 
 func compareSemantically(v *plumbing.Reference, w *plumbing.Reference) int {

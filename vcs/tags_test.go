@@ -170,6 +170,7 @@ func createTestRepo(t *testing.T) string {
 
 	// annotated tag
 	_, err = repo.CreateTag("0.1.0", c2, &git.CreateTagOptions{
+		Tagger:  c2Sig,
 		Message: "annotated tag 0.1.0",
 	})
 	if err != nil {
