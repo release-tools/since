@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.15.3] - 2024-04-12
+### Changed
+- test: improves coverage for annotated tags.
+
+### Fixed
+- fix: annotated tags shouldn't be ignored.
+
 ## [0.15.2] - 2024-04-12
 ### Changed
 - docs: adds missing release date.
