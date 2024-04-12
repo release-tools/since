@@ -80,5 +80,5 @@ func listCommits(
 	if err != nil {
 		return "", err
 	}
-	return changelog.RenderCommits(commits, true, vcs.UnreleasedVersionName), nil
+	return changelog.RenderCommits(commits, true, false, vcs.UnreleasedVersionName), nil
 }

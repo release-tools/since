@@ -48,7 +48,12 @@ func init() {
 
 // RenderCommits takes a slice of commits and returns a markdown-formatted string,
 // including the category header.
-func RenderCommits(commits *[]vcs.TagCommits, groupIntoSections bool, unreleasedVersionName string) string {
+func RenderCommits(
+	commits *[]vcs.TagCommits,
+	groupIntoSections bool,
+	releaseUnreleased bool,
+	unreleasedVersionName string,
+) string {
 	if commits == nil {
 		logrus.Debug("no commits to render")
 		return ""
@@ -58,7 +63,7 @@ func RenderCommits(commits *[]vcs.TagCommits, groupIntoSections bool, unreleased
 		var unreleased bool
 		var versionName string
 		if tagCommits.Name == vcs.UnreleasedVersionName {
-			unreleased = true
+			unreleased = !releaseUnreleased
 			versionName = unreleasedVersionName
 		} else {
 			unreleased = false
@@ -195,6 +200,7 @@ func GetUpdatedChangelog(
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
 
 	var nextVersion string
+	var releaseUnreleased bool
 	if beforeTag == "" {
 		// determine next version only based on unreleased commits
 		unreleasedCommits := (*commits)[0].Commits
@@ -204,11 +210,13 @@ func GetUpdatedChangelog(
 		if nextVersion == "" {
 			return vcs.ReleaseMetadata{}, "", fmt.Errorf("could not determine next version")
 		}
+
+		releaseUnreleased = true
 	} else {
 		nextVersion = vcs.UnreleasedVersionName
 	}
 
-	rendered := RenderCommits(commits, true, nextVersion)
+	rendered := RenderCommits(commits, true, releaseUnreleased, nextVersion)
 
 	lines, err := ReadFile(changelogFile)
 	if err != nil {

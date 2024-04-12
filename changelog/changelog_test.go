@@ -17,6 +17,7 @@ limitations under the License.
 package changelog
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -32,6 +33,7 @@ import (
 func TestRenderCommits(t *testing.T) {
 	type args struct {
 		groupIntoSections bool
+		releaseUnreleased bool
 		commits           *[]vcs.TagCommits
 	}
 
@@ -113,7 +115,7 @@ func TestRenderCommits(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := RenderCommits(tt.args.commits, tt.args.groupIntoSections, vcs.UnreleasedVersionName); got != tt.want {
+			if got := RenderCommits(tt.args.commits, tt.args.groupIntoSections, tt.args.releaseUnreleased, vcs.UnreleasedVersionName); got != tt.want {
 				t.Errorf("RenderCommits() got = %v, want %v", got, tt.want)
 			}
 		})
@@ -181,6 +183,8 @@ func TestGetUpdatedChangelog(t *testing.T) {
 		time.Now(),
 	)
 
+	today := time.Now().Format("2006-01-02")
+
 	type args struct {
 		config        cfg.SinceConfig
 		changelogFile string
@@ -225,21 +229,57 @@ func TestGetUpdatedChangelog(t *testing.T) {
 				Sha:        unreleasedCommitSha.String(),
 				VPrefix:    false,
 			},
-			wantUpdatedChangelog: `# Changelog
+			wantUpdatedChangelog: fmt.Sprintf(`# Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0]
+## [0.2.0] - %v
 ### Added
 - feat: unreleased change
 
 ### Changed
 - docs: adds changelog
 
-`,
+`, today),
+			wantErr: false,
+		},
+		{
+			name: "multiple versions",
+			args: args{
+				changelogFile: path.Join(repoWithTagsAndUnreleasedChanges, "CHANGELOG.md"),
+				orderBy:       vcs.TagOrderSemver,
+				repoPath:      repoWithTagsAndUnreleasedChanges,
+				afterTag:      "0.0.1",
+			},
+			wantMetadata: vcs.ReleaseMetadata{
+				NewVersion: "0.2.0",
+				OldVersion: "0.1.0",
+				RepoPath:   repoWithTagsAndUnreleasedChanges,
+				Sha:        unreleasedCommitSha.String(),
+				VPrefix:    false,
+			},
+			wantUpdatedChangelog: fmt.Sprintf(`# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] - %[1]v
+### Added
+- feat: unreleased change
+
+### Changed
+- docs: adds changelog
+
+## [0.1.0] - %[1]v
+### Added
+- feat: second update
+
+`, today),
 			wantErr: false,
 		},
 	}
