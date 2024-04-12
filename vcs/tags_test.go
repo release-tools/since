@@ -140,6 +140,8 @@ func createTestRepo(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// lightweight tag
 	_, err = repo.CreateTag("0.0.1", c1, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -165,7 +167,11 @@ func createTestRepo(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = repo.CreateTag("0.1.0", c2, nil)
+
+	// annotated tag
+	_, err = repo.CreateTag("0.1.0", c2, &git.CreateTagOptions{
+		Message: "annotated tag 0.1.0",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
