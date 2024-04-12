@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.15.1]
+## [0.15.1] - 2023-12-30
 ### Changed
 - docs: adds link to changelog init command.
 - docs: improves usage instructions.
