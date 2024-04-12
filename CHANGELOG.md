@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.15.4] - 2024-04-12
+### Changed
+- chore(deps): bumps actions/checkout to v4.
+- chore(deps): bumps actions/setup-go to v4.
+- chore(deps): bumps goreleaser/goreleaser-action to v5.
+- ci: updates deprecated Goreleaser config value.
+
 ## [0.15.3] - 2024-04-12
 ### Changed
 - test: improves coverage for annotated tags.
