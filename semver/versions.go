@@ -68,7 +68,7 @@ func GetNextVersion(currentVersion string, vPrefix bool, commits []string) strin
 
 // bumpVersion bumps the version based on the component.
 func bumpVersion(version string, component Component) string {
-	logrus.Debugf("bumping %v version", component)
+	logrus.Tracef("bumping %v component", component)
 	components := strings.Split(version, ".")
 
 	switch component {
@@ -87,7 +87,9 @@ func bumpVersion(version string, component Component) string {
 		components[2] = bump(components[2])
 		break
 	}
+
 	nextVersion := strings.Join(components, ".")
+	logrus.Debugf("bumped %v component - new version %v", component, nextVersion)
 	return nextVersion
 }
 
