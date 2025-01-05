@@ -1,1 +1,8 @@
 requireBranch: main
+
+ignore:
+  - "build: release"
+
+before:
+  - script: |
+      go test -v ./...
