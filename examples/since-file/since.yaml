@@ -1,0 +1,15 @@
+# require us to be on the main branch
+requireBranch: main
+
+ignore:
+  - "commit message with this string will be ignored"
+
+before:
+  - script: |
+      # run some tests before the release
+      # e.g. npm test
+
+after:
+  - script: |
+      # any post-release steps
+      # e.g. npm publish

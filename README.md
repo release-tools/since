@@ -198,3 +198,25 @@ Global Flags:
   -q, --quiet              Disable logging (useful for scripting)
   -t, --tag string         Include commits after this tag
 ```
+
+#### The `since.yaml` file
+
+You can also use a `since.yaml` file to configure the tool. This file should be placed in the root of your project repository.
+
+```yaml
+# require us to be on the main branch
+requireBranch: main
+
+ignore:
+  - "commit message with this string will be ignored"
+
+before:
+  - script: |
+      # run some tests before the release
+      # e.g. npm test
+
+after:
+  - script: |
+      # any post-release steps
+      # e.g. npm publish
+```
