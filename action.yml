@@ -1,10 +1,11 @@
 name: Extract Changelog entries for most recent version
-description: Extracts entries from the changelog file for the most recent version.
+description: Extracts entries from the changelog file for the most recent version and writes them to a file.
 inputs:
   output-file:
-    description: 'The file to write the extracted entries to.'
+    description: 'The file to write the extracted entries to, relative to the workspace.'
     required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args: [ "changelog", "extract" ]
+  working-directory: /github/workspace
+  args: [ "changelog", "extract", "--quiet", "--output-file", "/github/workspace/${{ inputs.output-file }}" ]
