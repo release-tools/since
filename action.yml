@@ -1,0 +1,10 @@
+name: Extract Changelog entries for most recent version
+description: Extracts entries from the changelog file for the most recent version.
+inputs:
+  output-file:
+    description: 'The file to write the extracted entries to.'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args: [ "changelog", "extract" ]
