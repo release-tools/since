@@ -25,6 +25,7 @@ import (
 
 var changelogArgs struct {
 	changelogFile string
+	outputFile    string
 }
 
 // changelogCmd represents the changelog command
@@ -38,6 +39,7 @@ func init() {
 	rootCmd.AddCommand(changelogCmd)
 
 	changelogCmd.PersistentFlags().StringVarP(&changelogArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
+	changelogCmd.PersistentFlags().StringVar(&changelogArgs.outputFile, "output-file", "", "Path to output file (otherwise stdout)")
 }
 
 func getWorkingDir() string {
@@ -46,4 +48,22 @@ func getWorkingDir() string {
 		panic(fmt.Errorf("failed to get working directory: %v", err))
 	}
 	return workingDir
+}
+
+// writeOutput writes the output to the output file, or stdout if not set.
+func writeOutput(output string) {
+	if changelogArgs.outputFile == "" {
+		fmt.Println(output)
+	}
+
+	file, err := os.Create(changelogArgs.outputFile)
+	if err != nil {
+		panic(fmt.Errorf("failed to create output file: %v", err))
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(output)
+	if err != nil {
+		panic(fmt.Errorf("failed to write output to file: %v", err))
+	}
 }

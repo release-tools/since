@@ -53,9 +53,10 @@ Flags:
   -o, --order-by string   How to determine the latest tag (alphabetical|commit-date|semver)) (default "semver")
 
 Global Flags:
-  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
-  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -q, --quiet              Disable logging (useful for scripting)
+  -c, --changelog string     Path to changelog file (default "CHANGELOG.md")
+      --output-file string   Path to output file (otherwise stdout)
+  -l, --log-level string     Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet                Disable logging (useful for scripting)
 ```
 
 ---
@@ -97,9 +98,10 @@ Flags:
   -v, --version string   Version to parse changelog for
 
 Global Flags:
-  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
-  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -q, --quiet              Disable logging (useful for scripting)
+  -c, --changelog string     Path to changelog file (default "CHANGELOG.md")
+      --output-file string   Path to output file (otherwise stdout)
+  -l, --log-level string     Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet                Disable logging (useful for scripting)
 ```
 
 ---
@@ -119,9 +121,10 @@ Flags:
       --unique            De-duplicate commit messages (default true)
 
 Global Flags:
-  -c, --changelog string   Path to changelog file (default "CHANGELOG.md")
-  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
-  -q, --quiet              Disable logging (useful for scripting)
+  -c, --changelog string     Path to changelog file (default "CHANGELOG.md")
+      --output-file string   Path to output file (otherwise stdout)
+  -l, --log-level string     Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet                Disable logging (useful for scripting)
 ```
 
 ---

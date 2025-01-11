@@ -17,7 +17,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/release-tools/since/cfg"
 	"github.com/release-tools/since/changelog"
 	"github.com/release-tools/since/vcs"
@@ -36,7 +35,7 @@ var generateCmd = &cobra.Command{
 	Short: "Print generated changelog based on changes since last release",
 	Long: `Generates a new changelog based on an existing changelog file,
 adding a new release section using the commits since the last release,
-then prints it to stdout.`,
+then prints it to stdout, or output-file, if specified.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		changelogFile := changelog.ResolveChangelogFile(
@@ -80,5 +79,5 @@ func generateChangelog(
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(updated)
+	writeOutput(updated)
 }

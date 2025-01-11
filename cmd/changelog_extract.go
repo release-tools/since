@@ -17,7 +17,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/release-tools/since/changelog"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +31,8 @@ var extractCmd = &cobra.Command{
 	Use:   "extract",
 	Short: "Extract changes for a given version",
 	Long: `Extracts changes for a given version in a changelog file.
-If no version is specified, the most recent version is used.`,
+If no version is specified, the most recent version is used.
+Prints it to stdout, or output-file, if specified.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		changelogFile := changelog.ResolveChangelogFile(getWorkingDir(), changelogArgs.changelogFile)
@@ -40,7 +40,7 @@ If no version is specified, the most recent version is used.`,
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(changes)
+		writeOutput(changes)
 	},
 }
 

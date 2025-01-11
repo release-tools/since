@@ -17,7 +17,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/release-tools/since/cfg"
 	"github.com/release-tools/since/changelog"
 	"github.com/release-tools/since/vcs"
@@ -73,6 +72,6 @@ func initChangelog(
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(newChangelog)
+	writeOutput(newChangelog)
 	logrus.Infof("initialised changelog file '%s'", changelogFile)
 }
