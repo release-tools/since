@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.16.1] - 2025-01-13
+### Changed
+- build: GitHub Action allows changelog path to be overridden.
+- build: GitHub Action writes changelog action to named file.
+- docs: adds GitHub Action instructions.
+
 ## [0.16.0] - 2025-01-11
 ### Added
 - feat: allows changelog output to be redirected to file.
