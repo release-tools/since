@@ -223,3 +223,35 @@ after:
       # any post-release steps
       # e.g. npm publish
 ```
+
+---
+
+## Using `since` with GitHub Actions
+
+You can use `since` with GitHub Actions to automate the release process.
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract entries from most recent release in CHANGELOG.md
+        uses: release-tools/since@main
+        with:
+          output-file: release-changes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-changes.md
+```
