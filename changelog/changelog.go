@@ -182,14 +182,14 @@ func mapTypeToSection(prefix string) string {
 // GetUpdatedChangelog returns the updated changelog, grouped by version headers.
 func GetUpdatedChangelog(
 	config cfg.SinceConfig,
+	commitCfg vcs.CommitConfig,
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-	unique bool,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string, err error) {
-	commits, err := vcs.FetchCommitsByTag(config, repoPath, beforeTag, afterTag, unique)
+	commits, err := vcs.FetchCommitsByTag(config, commitCfg, repoPath, beforeTag, afterTag)
 	if err != nil {
 		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err)
 	}
@@ -246,10 +246,10 @@ func GetUpdatedChangelog(
 // InitChangelog creates a new changelog file with a placeholder entry.
 func InitChangelog(
 	config cfg.SinceConfig,
+	commitCfg vcs.CommitConfig,
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-	unique bool,
 ) (newChangelog string, err error) {
 	err = WriteChangelog(changelogFile, changelogTemplate)
 	if err != nil {
@@ -261,7 +261,7 @@ func InitChangelog(
 		return "", fmt.Errorf("failed to get latest tag: %v", err)
 	}
 
-	_, updated, err := GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, latestTag, "", unique)
+	_, updated, err := GetUpdatedChangelog(config, commitCfg, changelogFile, orderBy, repoPath, latestTag, "")
 	if err != nil {
 		return "", fmt.Errorf("failed to get updated changelog: %v", err)
 	}

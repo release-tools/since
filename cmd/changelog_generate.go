@@ -42,11 +42,15 @@ then prints it to stdout, or output-file, if specified.`,
 			generateArgs.repoPath,
 			changelogArgs.changelogFile,
 		)
+		commitCfg := vcs.CommitConfig{
+			ExcludeTagCommits: changelogArgs.excludeTagCommits,
+			UniqueOnly:        generateArgs.unique,
+		}
 		generateChangelog(
+			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(generateArgs.orderBy),
 			generateArgs.repoPath,
-			generateArgs.unique,
 		)
 	},
 }
@@ -60,10 +64,10 @@ func init() {
 }
 
 func generateChangelog(
+	commitCfg vcs.CommitConfig,
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-	unique bool,
 ) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
@@ -75,7 +79,7 @@ func generateChangelog(
 		panic(err)
 	}
 
-	_, updated, err := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
+	_, updated, err := changelog.GetUpdatedChangelog(config, commitCfg, changelogFile, orderBy, repoPath, "", latestTag)
 	if err != nil {
 		panic(err)
 	}

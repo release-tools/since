@@ -187,12 +187,12 @@ func TestGetUpdatedChangelog(t *testing.T) {
 
 	type args struct {
 		config        cfg.SinceConfig
+		commitConfig  vcs.CommitConfig
 		changelogFile string
 		orderBy       vcs.TagOrderBy
 		repoPath      string
 		beforeTag     string
 		afterTag      string
-		unique        bool
 	}
 	tests := []struct {
 		name                 string
@@ -285,7 +285,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotMetadata, gotUpdatedChangelog, err := GetUpdatedChangelog(tt.args.config, tt.args.changelogFile, tt.args.orderBy, tt.args.repoPath, tt.args.beforeTag, tt.args.afterTag, tt.args.unique)
+			gotMetadata, gotUpdatedChangelog, err := GetUpdatedChangelog(tt.args.config, tt.args.commitConfig, tt.args.changelogFile, tt.args.orderBy, tt.args.repoPath, tt.args.beforeTag, tt.args.afterTag)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetUpdatedChangelog() error = %v, wantErr %v", err, tt.wantErr)
 				return

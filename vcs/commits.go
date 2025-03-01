@@ -31,17 +31,22 @@ import (
 
 const UnreleasedVersionName = "Unreleased"
 
+type CommitConfig struct {
+	ExcludeTagCommits bool
+	UniqueOnly        bool
+}
+
 // FetchCommitMessages returns a slice of commit messages between the given tags.
 // If beforeTag is empty, then HEAD is used.
 // If afterTag is empty, the oldest commit is used.
 func FetchCommitMessages(
 	config cfg.SinceConfig,
+	commitCfg CommitConfig,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-	unique bool,
 ) ([]string, error) {
-	commits, err := FetchCommitsByTag(config, repoPath, beforeTag, afterTag, unique)
+	commits, err := FetchCommitsByTag(config, commitCfg, repoPath, beforeTag, afterTag)
 	if err != nil {
 		return nil, err
 	}
@@ -54,12 +59,12 @@ func FetchCommitMessages(
 // If afterTag is empty, the oldest commit is used.
 func FetchCommitsByTag(
 	config cfg.SinceConfig,
+	commitCfg CommitConfig,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-	unique bool,
 ) (*[]TagCommits, error) {
-	commits, err := fetchCommitsBetween(config, repoPath, beforeTag, afterTag, unique)
+	commits, err := fetchCommitsBetween(config, commitCfg, repoPath, beforeTag, afterTag)
 	if err != nil {
 		return nil, err
 	}
@@ -85,10 +90,10 @@ func FlattenCommits(tags *[]TagCommits) []string {
 // If afterTag is empty, the oldest commit is used.
 func fetchCommitsBetween(
 	config cfg.SinceConfig,
+	commitCfg CommitConfig,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-	unique bool,
 ) (*[]TagCommits, error) {
 	var excludes []*regexp.Regexp
 	for _, i := range config.Ignore {
@@ -106,7 +111,11 @@ func fetchCommitsBetween(
 		if err != nil {
 			return nil, err
 		}
-		beforeCommit, err = r.CommitObject(beforeTagMeta.Hash())
+		hash, err := getCommitHashForTag(beforeTagMeta, r)
+		if err != nil {
+			return nil, err
+		}
+		beforeCommit, err = r.CommitObject(hash)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +127,11 @@ func fetchCommitsBetween(
 		if err != nil {
 			return nil, err
 		}
-		afterCommit, err = r.CommitObject(afterTagMeta.Hash())
+		hash, err := getCommitHashForTag(afterTagMeta, r)
+		if err != nil {
+			return nil, err
+		}
+		afterCommit, err = r.CommitObject(hash)
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +144,7 @@ func fetchCommitsBetween(
 		return nil, err
 	}
 
-	tagCommits, err := processCommits(beforeCommit, afterCommit, commits, allTags, unique, excludes)
+	tagCommits, err := processCommits(commitCfg, beforeCommit, afterCommit, commits, allTags, excludes)
 	if err != nil {
 		return nil, err
 	}
@@ -140,11 +153,11 @@ func fetchCommitsBetween(
 }
 
 func processCommits(
+	commitCfg CommitConfig,
 	beforeCommit *object.Commit,
 	afterCommit *object.Commit,
 	commits object.CommitIter,
 	allTags map[string]*TagMeta,
-	unique bool,
 	excludes []*regexp.Regexp,
 ) (*[]TagCommits, error) {
 	var tagCommits []TagCommits
@@ -158,7 +171,7 @@ func processCommits(
 
 	appendCurrentTag := func() {
 		if len(commitMessages) > 0 {
-			if unique {
+			if commitCfg.UniqueOnly {
 				commitMessages = stringutil.Unique(commitMessages)
 			}
 
@@ -193,6 +206,11 @@ func processCommits(
 			return storer.ErrStop
 		}
 
+		// check if we include tag commits in the changelog
+		if tagCommit != nil && commitCfg.ExcludeTagCommits {
+			return nil
+		}
+
 		longMessage := c.Message
 		if !shouldInclude(longMessage, excludes) {
 			return nil
@@ -220,11 +238,19 @@ func listAllTags(r *git.Repository) (map[string]*TagMeta, error) {
 		return nil, err
 	}
 	err = tagRefs.ForEach(func(t *plumbing.Reference) error {
-		commit, err := r.CommitObject(t.Hash())
+		logrus.Tracef("checking tag %s", t.Name().Short())
+
+		commitHash, err := getCommitHashForTag(t, r)
+		if err != nil {
+			logrus.Tracef("failed to determine tag type for %s: %v", t.Name().Short(), err)
+			return err
+		}
+
+		commit, err := r.CommitObject(commitHash)
 		if err != nil {
 			return err
 		}
-		tags[t.Hash().String()] = &TagMeta{
+		tags[commitHash.String()] = &TagMeta{
 			Name: t.Name().Short(),
 			Date: commit.Committer.When,
 		}

@@ -18,14 +18,16 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
 var changelogArgs struct {
-	changelogFile string
-	outputFile    string
+	changelogFile     string
+	excludeTagCommits bool
+	outputFile        string
 }
 
 // changelogCmd represents the changelog command
@@ -40,6 +42,7 @@ func init() {
 
 	changelogCmd.PersistentFlags().StringVarP(&changelogArgs.changelogFile, "changelog", "c", "CHANGELOG.md", "Path to changelog file")
 	changelogCmd.PersistentFlags().StringVar(&changelogArgs.outputFile, "output-file", "", "Path to output file (otherwise stdout)")
+	changelogCmd.PersistentFlags().BoolVar(&changelogArgs.excludeTagCommits, "exclude-tag-commits", false, "Exclude tag commits in the changelog")
 }
 
 func getWorkingDir() string {
@@ -52,18 +55,21 @@ func getWorkingDir() string {
 
 // writeOutput writes the output to the output file, or stdout if not set.
 func writeOutput(output string) {
-	if changelogArgs.outputFile == "" {
+	outputFile := changelogArgs.outputFile
+	if outputFile == "" {
+		logrus.Warn("no output file specified, writing to stdout")
 		fmt.Println(output)
-	}
+	} else {
+		logrus.Tracef("writing output to file: %s", outputFile)
+		file, err := os.Create(outputFile)
+		if err != nil {
+			panic(fmt.Errorf("failed to create output file: %s: %v", outputFile, err))
+		}
+		defer file.Close()
 
-	file, err := os.Create(changelogArgs.outputFile)
-	if err != nil {
-		panic(fmt.Errorf("failed to create output file: %v", err))
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(output)
-	if err != nil {
-		panic(fmt.Errorf("failed to write output to file: %v", err))
+		_, err = file.WriteString(output)
+		if err != nil {
+			panic(fmt.Errorf("failed to write output to file: %v", err))
+		}
 	}
 }

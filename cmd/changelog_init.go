@@ -41,11 +41,15 @@ var initCmd = &cobra.Command{
 			initArgs.repoPath,
 			changelogArgs.changelogFile,
 		)
+		commitCfg := vcs.CommitConfig{
+			ExcludeTagCommits: changelogArgs.excludeTagCommits,
+			UniqueOnly:        initArgs.unique,
+		}
 		initChangelog(
+			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(initArgs.orderBy),
 			initArgs.repoPath,
-			initArgs.unique,
 		)
 	},
 }
@@ -58,17 +62,12 @@ func init() {
 	initCmd.Flags().BoolVar(&initArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func initChangelog(
-	changelogFile string,
-	orderBy vcs.TagOrderBy,
-	repoPath string,
-	unique bool,
-) {
+func initChangelog(commitCfg vcs.CommitConfig, changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
 		panic(err)
 	}
-	newChangelog, err := changelog.InitChangelog(config, changelogFile, orderBy, repoPath, unique)
+	newChangelog, err := changelog.InitChangelog(config, commitCfg, changelogFile, orderBy, repoPath)
 	if err != nil {
 		panic(err)
 	}

@@ -35,11 +35,15 @@ var changesCmd = &cobra.Command{
 	Long: `Reads the commit history for the current git repository, starting
 from the most recent tag. Lists the commits categorised by their type.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		commitCfg := vcs.CommitConfig{
+			ExcludeTagCommits: projectArgs.excludeTagCommits,
+			UniqueOnly:        changesArgs.unique,
+		}
 		changes, err := listCommits(
+			commitCfg,
 			projectArgs.repoPath,
 			projectArgs.tag,
 			vcs.TagOrderBy(projectArgs.orderBy),
-			changesArgs.unique,
 		)
 		if err != nil {
 			panic(err)
@@ -55,10 +59,10 @@ func init() {
 }
 
 func listCommits(
+	commitCfg vcs.CommitConfig,
 	repoPath string,
 	tag string,
 	orderBy vcs.TagOrderBy,
-	unique bool,
 ) (string, error) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
@@ -76,7 +80,7 @@ func listCommits(
 		afterTag = tag
 	}
 
-	commits, err := vcs.FetchCommitsByTag(config, repoPath, "", afterTag, unique)
+	commits, err := vcs.FetchCommitsByTag(config, commitCfg, repoPath, "", afterTag)
 	if err != nil {
 		return "", err
 	}

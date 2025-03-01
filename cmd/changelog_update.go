@@ -39,11 +39,15 @@ using the commits since the last release.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		changelogFile := changelog.ResolveChangelogFile(updateArgs.repoPath, changelogArgs.changelogFile)
+		commitCfg := vcs.CommitConfig{
+			ExcludeTagCommits: changelogArgs.excludeTagCommits,
+			UniqueOnly:        updateArgs.unique,
+		}
 		updateChangelog(
+			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(updateArgs.orderBy),
 			updateArgs.repoPath,
-			updateArgs.unique,
 		)
 	},
 }
@@ -57,10 +61,10 @@ func init() {
 }
 
 func updateChangelog(
+	commitCfg vcs.CommitConfig,
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-	unique bool,
 ) {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
@@ -72,7 +76,7 @@ func updateChangelog(
 		panic(err)
 	}
 
-	_, updated, err := changelog.GetUpdatedChangelog(config, changelogFile, orderBy, repoPath, "", latestTag, unique)
+	_, updated, err := changelog.GetUpdatedChangelog(config, commitCfg, changelogFile, orderBy, repoPath, "", latestTag)
 	if err != nil {
 		panic(err)
 	}

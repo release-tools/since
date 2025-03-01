@@ -22,9 +22,10 @@ import (
 )
 
 var projectArgs struct {
-	orderBy  string
-	repoPath string
-	tag      string
+	excludeTagCommits bool
+	orderBy           string
+	repoPath          string
+	tag               string
 }
 
 // projectCmd represents the project command
@@ -39,6 +40,7 @@ those changes.`,
 func init() {
 	rootCmd.AddCommand(projectCmd)
 
+	projectCmd.PersistentFlags().BoolVar(&projectArgs.excludeTagCommits, "exclude-tag-commits", false, "Exclude tag commits in the changelog")
 	projectCmd.PersistentFlags().StringVarP(&projectArgs.orderBy, "order-by", "o", string(vcs.TagOrderSemver), "How to determine the latest tag (alphabetical|commit-date|semver))")
 	projectCmd.PersistentFlags().StringVarP(&projectArgs.repoPath, "git-repo", "g", ".", "Path to git repository")
 	projectCmd.PersistentFlags().StringVarP(&projectArgs.tag, "tag", "t", "", "Include commits after this tag")

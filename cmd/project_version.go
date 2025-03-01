@@ -42,12 +42,16 @@ Changes influence the version according to
 conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		commitCfg := vcs.CommitConfig{
+			ExcludeTagCommits: projectArgs.excludeTagCommits,
+			UniqueOnly:        versionArgs.unique,
+		}
 		version := printVersion(
+			commitCfg,
 			projectArgs.repoPath,
 			projectArgs.tag,
 			vcs.TagOrderBy(projectArgs.orderBy),
 			versionArgs.current,
-			versionArgs.unique,
 		)
 		if version == "" {
 			os.Exit(1)
@@ -64,11 +68,11 @@ func init() {
 }
 
 func printVersion(
+	commitCfg vcs.CommitConfig,
 	repoPath string,
 	tag string,
 	orderBy vcs.TagOrderBy,
 	current bool,
-	unique bool,
 ) string {
 	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
 	if current {
@@ -94,7 +98,7 @@ func printVersion(
 		afterTag = tag
 	}
 
-	commits, err := vcs.FetchCommitMessages(config, repoPath, "", afterTag, unique)
+	commits, err := vcs.FetchCommitMessages(config, commitCfg, repoPath, "", afterTag)
 	if err != nil {
 		panic(err)
 	}
