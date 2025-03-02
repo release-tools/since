@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.16.2] - 2025-03-02
+### Fixed
+- fix: support annotated tags when initialising changelog.
+
 ## [0.16.1] - 2025-01-13
 ### Changed
 - build: GitHub Action allows changelog path to be overridden.
