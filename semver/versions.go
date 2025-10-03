@@ -105,7 +105,7 @@ func DetermineChangeType(types []string) Component {
 		return ComponentMajor
 	} else if stringutil.ContainsIgnoreCase(types, "feat") {
 		return ComponentMinor
-	} else if stringutil.ContainsIgnoreCase(types, "build", "chore", "ci", "docs", "fix", "refactor", "style", "test") {
+	} else if stringutil.ContainsIgnoreCase(types, "build", "chore", "ci", "docs", "fix", "refactor", "security", "style", "test") {
 		return ComponentPatch
 	} else {
 		logrus.Warnf("unable to determine next version from changes")
