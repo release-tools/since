@@ -18,10 +18,11 @@ package vcs
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/release-tools/since/cfg"
 	"github.com/sirupsen/logrus"
-	"strings"
 )
 
 type ReleaseMetadata struct {
@@ -52,7 +53,7 @@ func CommitChangelog(repoPath string, changelogFile string, version string) (has
 	if err != nil {
 		return "", err
 	}
-	commit, err := w.Commit("build: release "+version+".", &git.CommitOptions{})
+	commit, err := w.Commit("build: release "+version, &git.CommitOptions{})
 	if err != nil {
 		return "", err
 	}
