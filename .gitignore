@@ -2,3 +2,4 @@
 /.idea/
 /dist/
 since
+.claude/*.local.json

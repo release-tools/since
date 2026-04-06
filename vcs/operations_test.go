@@ -52,22 +52,25 @@ func TestCheckBranch_wrongBranch(t *testing.T) {
 func TestCommitChangelog(t *testing.T) {
 	repoDir := createTestRepo(t)
 
-	changelogPath := path.Join(repoDir, "CHANGELOG.md")
-	err := os.WriteFile(changelogPath, []byte("# Changelog\n"), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// stage the file first via worktree
+	// configure git user so CommitChangelog can create a commit without
+	// relying on the global git config (which may not exist in CI)
 	repo, err := git.PlainOpen(repoDir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	w, err := repo.Worktree()
+	cfg, err := repo.Config()
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = w.Add("CHANGELOG.md")
+	cfg.User.Name = "user"
+	cfg.User.Email = "user@example.com"
+	err = repo.SetConfig(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	changelogPath := path.Join(repoDir, "CHANGELOG.md")
+	err = os.WriteFile(changelogPath, []byte("# Changelog\n"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
