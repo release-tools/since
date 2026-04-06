@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.17.0] - 2026-04-06
+### Added
+- feat: Support "security" prefix (#3)
+
+### Changed
+- refactor: remove fullstop in commit message
+
 ## [0.16.2] - 2025-03-02
 ### Fixed
 - fix: support annotated tags when initialising changelog.
