@@ -2,11 +2,13 @@ package vcs
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/rogpeppe/go-internal/semver"
 	"github.com/sirupsen/logrus"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -177,8 +179,23 @@ func compareSemantically(v *plumbing.Reference, w *plumbing.Reference) int {
 	return semver.Compare(a, b)
 }
 
-// TagRelease tags the repository with the given version.
+// TagRelease tags the repository with the given version. When git is
+// configured to sign tags (via tag.gpgSign or tag.forceSignAnnotated) an
+// annotated, signed tag is created instead of a lightweight one.
 func TagRelease(repoPath string, hash string, version string) error {
+	shouldSign, err := isTagSigningEnabled(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to check tag signing config: %w", err)
+	}
+
+	if shouldSign {
+		if err := createSignedTag(repoPath, hash, version); err != nil {
+			return err
+		}
+		logrus.Debugf("signed tag %s created for %s", version, hash)
+		return nil
+	}
+
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return err
@@ -188,5 +205,37 @@ func TagRelease(repoPath string, hash string, version string) error {
 		return err
 	}
 	logrus.Debugf("tagged %s with %s", hash, version)
+	return nil
+}
+
+// isTagSigningEnabled returns true if git is configured to sign tags in any
+// config scope. Checks tag.gpgSign and tag.forceSignAnnotated.
+func isTagSigningEnabled(repoPath string) (bool, error) {
+	for _, key := range []string{"tag.gpgSign", "tag.forceSignAnnotated"} {
+		cmd := exec.Command("git", "-C", repoPath, "config", "--bool", "--get", key)
+		out, err := cmd.Output()
+		if err != nil {
+			var exitErr *exec.ExitError
+			if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+				// key is not set in any scope
+				continue
+			}
+			return false, err
+		}
+		if strings.TrimSpace(string(out)) == "true" {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// createSignedTag creates a signed, annotated tag by delegating to the git
+// CLI, which handles GPG/SSH key lookup and passphrase prompting.
+func createSignedTag(repoPath, hash, version string) error {
+	cmd := exec.Command("git", "-C", repoPath, "tag", "-s", "-m", version, version, hash)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git tag -s failed: %s: %w", strings.TrimSpace(string(out)), err)
+	}
 	return nil
 }

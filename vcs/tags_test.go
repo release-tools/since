@@ -5,9 +5,51 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 )
+
+func Test_isTagSigningEnabled(t *testing.T) {
+	tests := []struct {
+		name   string
+		key    string
+		value  string
+		want   bool
+	}{
+		{name: "unset", key: "", want: false},
+		{name: "tag.gpgSign=true", key: "tag.gpgSign", value: "true", want: true},
+		{name: "tag.gpgSign=false", key: "tag.gpgSign", value: "false", want: false},
+		{name: "tag.forceSignAnnotated=true", key: "tag.forceSignAnnotated", value: "true", want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repoDir := createTestRepo(t)
+			if tt.key != "" {
+				repo, err := git.PlainOpen(repoDir)
+				if err != nil {
+					t.Fatal(err)
+				}
+				cfg, err := repo.Config()
+				if err != nil {
+					t.Fatal(err)
+				}
+				cfg.Raw.Section("tag").SetOption(strings.TrimPrefix(tt.key, "tag."), tt.value)
+				if err := repo.SetConfig(cfg); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			got, err := isTagSigningEnabled(repoDir)
+			if err != nil {
+				t.Fatalf("isTagSigningEnabled() error = %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("isTagSigningEnabled() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 func Test_getEndTag(t *testing.T) {
 	repoDir := createTestRepo(t)
