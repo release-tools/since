@@ -42,7 +42,7 @@ func TestFetchCommitMessages_allCommits(t *testing.T) {
 func TestFetchCommitsByTag(t *testing.T) {
 	repoDir := createTestRepo(t)
 
-	tagCommits, err := FetchCommitsByTag(cfg.SinceConfig{}, CommitConfig{}, repoDir, "", "0.0.1")
+	tagCommits, _, err := FetchCommitsByTag(cfg.SinceConfig{}, CommitConfig{}, repoDir, "", "0.0.1")
 	if err != nil {
 		t.Fatalf("FetchCommitsByTag() error = %v", err)
 	}

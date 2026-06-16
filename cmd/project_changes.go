@@ -83,7 +83,7 @@ func listCommits(
 		afterTag = tag
 	}
 
-	commits, err := vcs.FetchCommitsByTag(config, commitCfg, repoPath, "", afterTag)
+	commits, _, err := vcs.FetchCommitsByTag(config, commitCfg, repoPath, "", afterTag)
 	if err != nil {
 		return "", err
 	}

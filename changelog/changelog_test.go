@@ -212,7 +212,7 @@ func TestGetUpdatedChangelog(t *testing.T) {
 			wantMetadata:         vcs.ReleaseMetadata{},
 			wantUpdatedChangelog: "",
 			wantErr:              true,
-			errMessage:           "no changes since start tag",
+			errMessage:           "no commits since 0.1.0",
 		},
 		{
 			name: "unreleased changes",
