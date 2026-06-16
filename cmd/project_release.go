@@ -39,14 +39,16 @@ using the commits since the last release.
 
 The changelog is then committed and a new tag is created
 with the new version.`,
-	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:          cobra.NoArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		changelogFile := changelog.ResolveChangelogFile(projectArgs.repoPath, changelogArgs.changelogFile)
 		commitCfg := vcs.CommitConfig{
 			ExcludeTagCommits: projectArgs.excludeTagCommits,
 			UniqueOnly:        releaseArgs.unique,
 		}
-		release(
+		return release(
 			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(projectArgs.orderBy),
@@ -67,23 +69,23 @@ func release(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-) {
+) error {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
-		panic(fmt.Errorf("failed to load config: %w", err))
+		return fmt.Errorf("failed to load config: %w", err)
 	}
-	if err = vcs.CheckBranch(repoPath, config); err != nil {
-		panic(err)
+	if err := vcs.CheckBranch(repoPath, config); err != nil {
+		return err
 	}
 
 	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	metadata, updatedChangelog, err := changelog.GetUpdatedChangelog(config, commitCfg, changelogFile, orderBy, repoPath, "", latestTag)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	version := metadata.NewVersion
@@ -91,30 +93,27 @@ func release(
 		version = "v" + version
 	}
 
-	err = hooks.ExecuteHooks(config, hooks.Before, metadata)
-	if err != nil {
-		panic(fmt.Errorf("failed to execute hooks before release: %w", err))
+	if err := hooks.ExecuteHooks(config, hooks.Before, metadata); err != nil {
+		return fmt.Errorf("failed to execute hooks before release: %w", err)
 	}
 
-	err = changelog.WriteChangelog(changelogFile, updatedChangelog)
-	if err != nil {
-		panic(fmt.Errorf("failed to update changelog: %w", err))
+	if err := changelog.WriteChangelog(changelogFile, updatedChangelog); err != nil {
+		return fmt.Errorf("failed to update changelog: %w", err)
 	}
 
 	hash, err := vcs.CommitChangelog(repoPath, changelogFile, version)
 	if err != nil {
-		panic(fmt.Errorf("failed to commit changelog: %w", err))
+		return fmt.Errorf("failed to commit changelog: %w", err)
 	}
 
-	err = vcs.TagRelease(repoPath, hash, version)
-	if err != nil {
-		panic(fmt.Errorf("failed to tag release commit: %s: %w", hash, err))
+	if err := vcs.TagRelease(repoPath, hash, version); err != nil {
+		return fmt.Errorf("failed to tag release commit: %s: %w", hash, err)
 	}
 
-	err = hooks.ExecuteHooks(config, hooks.After, metadata)
-	if err != nil {
-		panic(fmt.Errorf("failed to execute hooks after release: %w", err))
+	if err := hooks.ExecuteHooks(config, hooks.After, metadata); err != nil {
+		return fmt.Errorf("failed to execute hooks after release: %w", err)
 	}
 
 	fmt.Printf("released version %s\n", version)
+	return nil
 }

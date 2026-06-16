@@ -36,14 +36,16 @@ var updateCmd = &cobra.Command{
 	Short: "Write updated changelog based on changes since last release",
 	Long: `Updates the existing changelog file with a new release section,
 using the commits since the last release.`,
-	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:          cobra.NoArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		changelogFile := changelog.ResolveChangelogFile(updateArgs.repoPath, changelogArgs.changelogFile)
 		commitCfg := vcs.CommitConfig{
 			ExcludeTagCommits: changelogArgs.excludeTagCommits,
 			UniqueOnly:        updateArgs.unique,
 		}
-		updateChangelog(
+		return updateChangelog(
 			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(updateArgs.orderBy),
@@ -65,24 +67,24 @@ func updateChangelog(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-) {
+) error {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	_, updated, err := changelog.GetUpdatedChangelog(config, commitCfg, changelogFile, orderBy, repoPath, "", latestTag)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	err = changelog.WriteChangelog(changelogFile, updated)
-	if err != nil {
-		panic(fmt.Errorf("failed to update changelog: %w", err))
+	if err := changelog.WriteChangelog(changelogFile, updated); err != nil {
+		return fmt.Errorf("failed to update changelog: %w", err)
 	}
+	return nil
 }

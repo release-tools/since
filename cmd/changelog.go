@@ -45,31 +45,31 @@ func init() {
 	changelogCmd.PersistentFlags().BoolVar(&changelogArgs.excludeTagCommits, "exclude-tag-commits", false, "Exclude tag commits in the changelog")
 }
 
-func getWorkingDir() string {
+func getWorkingDir() (string, error) {
 	workingDir, err := os.Getwd()
 	if err != nil {
-		panic(fmt.Errorf("failed to get working directory: %v", err))
+		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}
-	return workingDir
+	return workingDir, nil
 }
 
 // writeOutput writes the output to the output file, or stdout if not set.
-func writeOutput(output string) {
+func writeOutput(output string) error {
 	outputFile := changelogArgs.outputFile
 	if outputFile == "" {
 		logrus.Warn("no output file specified, writing to stdout")
 		fmt.Println(output)
-	} else {
-		logrus.Tracef("writing output to file: %s", outputFile)
-		file, err := os.Create(outputFile)
-		if err != nil {
-			panic(fmt.Errorf("failed to create output file: %s: %v", outputFile, err))
-		}
-		defer file.Close()
-
-		_, err = file.WriteString(output)
-		if err != nil {
-			panic(fmt.Errorf("failed to write output to file: %v", err))
-		}
+		return nil
 	}
+	logrus.Tracef("writing output to file: %s", outputFile)
+	file, err := os.Create(outputFile)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %s: %w", outputFile, err)
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(output); err != nil {
+		return fmt.Errorf("failed to write output to file: %w", err)
+	}
+	return nil
 }

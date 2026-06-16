@@ -36,8 +36,10 @@ var generateCmd = &cobra.Command{
 	Long: `Generates a new changelog based on an existing changelog file,
 adding a new release section using the commits since the last release,
 then prints it to stdout, or output-file, if specified.`,
-	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:          cobra.NoArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		changelogFile := changelog.ResolveChangelogFile(
 			generateArgs.repoPath,
 			changelogArgs.changelogFile,
@@ -46,7 +48,7 @@ then prints it to stdout, or output-file, if specified.`,
 			ExcludeTagCommits: changelogArgs.excludeTagCommits,
 			UniqueOnly:        generateArgs.unique,
 		}
-		generateChangelog(
+		return generateChangelog(
 			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(generateArgs.orderBy),
@@ -68,20 +70,20 @@ func generateChangelog(
 	changelogFile string,
 	orderBy vcs.TagOrderBy,
 	repoPath string,
-) {
+) error {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	_, updated, err := changelog.GetUpdatedChangelog(config, commitCfg, changelogFile, orderBy, repoPath, "", latestTag)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	writeOutput(updated)
+	return writeOutput(updated)
 }

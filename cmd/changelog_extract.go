@@ -33,14 +33,20 @@ var extractCmd = &cobra.Command{
 	Long: `Extracts changes for a given version in a changelog file.
 If no version is specified, the most recent version is used.
 Prints it to stdout, or output-file, if specified.`,
-	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		changelogFile := changelog.ResolveChangelogFile(getWorkingDir(), changelogArgs.changelogFile)
+	Args:          cobra.NoArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		workingDir, err := getWorkingDir()
+		if err != nil {
+			return err
+		}
+		changelogFile := changelog.ResolveChangelogFile(workingDir, changelogArgs.changelogFile)
 		changes, err := printChanges(changelogFile, extractArgs.version, extractArgs.includeHeader)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		writeOutput(changes)
+		return writeOutput(changes)
 	},
 }
 

@@ -17,6 +17,7 @@ limitations under the License.
 package vcs
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -97,7 +98,11 @@ func fetchCommitsBetween(
 ) (*[]TagCommits, error) {
 	var excludes []*regexp.Regexp
 	for _, i := range config.Ignore {
-		excludes = append(excludes, regexp.MustCompile(i))
+		pattern, err := regexp.Compile(i)
+		if err != nil {
+			return nil, fmt.Errorf("invalid ignore pattern %q in since.yaml: %w", i, err)
+		}
+		excludes = append(excludes, pattern)
 	}
 
 	r, err := git.PlainOpen(repoPath)
@@ -138,6 +143,9 @@ func fetchCommitsBetween(
 	}
 
 	allTags, err := listAllTags(r)
+	if err != nil {
+		return nil, err
+	}
 
 	commits, err := r.Log(&git.LogOptions{})
 	if err != nil {
