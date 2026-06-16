@@ -131,7 +131,7 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 				}
 
 			default:
-				panic("unknown tag order by: " + orderBy)
+				return fmt.Errorf("unknown tag order by: %s", orderBy)
 			}
 		}
 
@@ -143,6 +143,10 @@ func getEndTag(repoPath string, endType endTagType, orderBy TagOrderBy) (string,
 	})
 	if err != nil {
 		return "", err
+	}
+
+	if candidateTag == nil {
+		return "", fmt.Errorf("no tags found in repository at %s", repoPath)
 	}
 
 	tagName := candidateTag.Name().Short()

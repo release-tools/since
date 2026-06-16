@@ -130,7 +130,10 @@ func Test_readChanges_firstVersion(t *testing.T) {
 		"## [0.9.0] - 2023-12-01",
 		"- fix: bar",
 	}
-	got := readChanges(lines, "", false)
+	got, err := readChanges(lines, "", false)
+	if err != nil {
+		t.Fatalf("readChanges() error = %v", err)
+	}
 	want := []string{"### Added", "- feat: foo"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("readChanges() = %v, want %v", got, want)

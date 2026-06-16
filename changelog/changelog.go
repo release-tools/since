@@ -197,7 +197,10 @@ func GetUpdatedChangelog(
 		return vcs.ReleaseMetadata{}, "", fmt.Errorf("no changes since start tag")
 	}
 
-	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
+	currentVersion, vPrefix, err := semver.GetCurrentVersion(repoPath, orderBy)
+	if err != nil {
+		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to get current version: %w", err)
+	}
 
 	var nextVersion string
 	var releaseUnreleased bool

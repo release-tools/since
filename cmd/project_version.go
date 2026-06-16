@@ -40,23 +40,29 @@ based on the changes.
 
 Changes influence the version according to
 conventional commits: https://www.conventionalcommits.org/en/v1.0.0/`,
-	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:          cobra.NoArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		commitCfg := vcs.CommitConfig{
 			ExcludeTagCommits: projectArgs.excludeTagCommits,
 			UniqueOnly:        versionArgs.unique,
 		}
-		version := printVersion(
+		version, err := printVersion(
 			commitCfg,
 			projectArgs.repoPath,
 			projectArgs.tag,
 			vcs.TagOrderBy(projectArgs.orderBy),
 			versionArgs.current,
 		)
+		if err != nil {
+			return err
+		}
 		if version == "" {
 			os.Exit(1)
 		}
 		fmt.Println(version)
+		return nil
 	},
 }
 
@@ -73,25 +79,28 @@ func printVersion(
 	tag string,
 	orderBy vcs.TagOrderBy,
 	current bool,
-) string {
-	currentVersion, vPrefix := semver.GetCurrentVersion(repoPath, orderBy)
+) (string, error) {
+	currentVersion, vPrefix, err := semver.GetCurrentVersion(repoPath, orderBy)
+	if err != nil {
+		return "", err
+	}
 	if current {
 		if vPrefix {
 			currentVersion = "v" + currentVersion
 		}
-		return currentVersion
+		return currentVersion, nil
 	}
 
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	var afterTag string
 	if tag == "" {
 		latestTag, err := vcs.GetLatestTag(repoPath, orderBy)
 		if err != nil {
-			panic(err)
+			return "", err
 		}
 		afterTag = latestTag
 	} else {
@@ -100,7 +109,7 @@ func printVersion(
 
 	commits, err := vcs.FetchCommitMessages(config, commitCfg, repoPath, "", afterTag)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return semver.GetNextVersion(currentVersion, vPrefix, commits)
+	return semver.GetNextVersion(currentVersion, vPrefix, commits), nil
 }

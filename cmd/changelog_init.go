@@ -32,11 +32,13 @@ var initArgs struct {
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialise a new changelog file",
-	Long:  `Initialises a new changelog file based on the specified git repository.`,
-	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:           "init",
+	Short:         "Initialise a new changelog file",
+	Long:          `Initialises a new changelog file based on the specified git repository.`,
+	Args:          cobra.NoArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		changelogFile := changelog.ResolveChangelogFile(
 			initArgs.repoPath,
 			changelogArgs.changelogFile,
@@ -45,7 +47,7 @@ var initCmd = &cobra.Command{
 			ExcludeTagCommits: changelogArgs.excludeTagCommits,
 			UniqueOnly:        initArgs.unique,
 		}
-		initChangelog(
+		return initChangelog(
 			commitCfg,
 			changelogFile,
 			vcs.TagOrderBy(initArgs.orderBy),
@@ -62,15 +64,18 @@ func init() {
 	initCmd.Flags().BoolVar(&initArgs.unique, "unique", true, "De-duplicate commit messages")
 }
 
-func initChangelog(commitCfg vcs.CommitConfig, changelogFile string, orderBy vcs.TagOrderBy, repoPath string) {
+func initChangelog(commitCfg vcs.CommitConfig, changelogFile string, orderBy vcs.TagOrderBy, repoPath string) error {
 	config, err := cfg.LoadConfig(repoPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	newChangelog, err := changelog.InitChangelog(config, commitCfg, changelogFile, orderBy, repoPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	writeOutput(newChangelog)
+	if err := writeOutput(newChangelog); err != nil {
+		return err
+	}
 	logrus.Infof("initialised changelog file '%s'", changelogFile)
+	return nil
 }

@@ -39,7 +39,7 @@ func ParseChangelog(path string, version string, includeHeader bool) ([]string, 
 	if err != nil {
 		return nil, err
 	}
-	return readChanges(lines, version, includeHeader), nil
+	return readChanges(lines, version, includeHeader)
 }
 
 // ReadFile loads a changelog file at the given path and returns a slice of strings containing each line.
@@ -62,7 +62,7 @@ func ReadFile(path string) ([]string, error) {
 
 // readChanges parses a changelog and returns all content starting with the h2 for the specified version,
 // before the next h2, or the end of the file. If no version is specified, the first h2 is used.
-func readChanges(lines []string, version string, includeHeader bool) []string {
+func readChanges(lines []string, version string, includeHeader bool) ([]string, error) {
 	// find the first h2
 	firstH2 := 0
 	for i, line := range lines {
@@ -78,7 +78,10 @@ func readChanges(lines []string, version string, includeHeader bool) []string {
 		}
 	}
 	if firstH2 == 0 {
-		panic(fmt.Sprintf("could not find version %s in changelog", version))
+		if version == "" {
+			return nil, fmt.Errorf("changelog contains no version sections")
+		}
+		return nil, fmt.Errorf("could not find version %s in changelog", version)
 	}
 	// find the next h2, or the end of the file
 	nextH2 := len(lines) - firstH2 - 1
@@ -88,5 +91,5 @@ func readChanges(lines []string, version string, includeHeader bool) []string {
 			break
 		}
 	}
-	return lines[firstH2 : firstH2+nextH2]
+	return lines[firstH2 : firstH2+nextH2], nil
 }

@@ -24,25 +24,27 @@ import (
 
 // WriteChangelog updates the changelog file with the given content.
 func WriteChangelog(changelogFile string, updatedChangelog string) error {
-	tempChangelog := writeTempChangelog(updatedChangelog)
-	err := os.Rename(tempChangelog, changelogFile)
+	tempChangelog, err := writeTempChangelog(updatedChangelog)
 	if err != nil {
-		panic(fmt.Errorf("failed to rename temp file: %s: %w", tempChangelog, err))
+		return err
+	}
+	if err := os.Rename(tempChangelog, changelogFile); err != nil {
+		return fmt.Errorf("failed to rename temp file: %s: %w", tempChangelog, err)
 	}
 	logrus.Debugf("updated changelog: %s", changelogFile)
-	return err
+	return nil
 }
 
 // writeTempChangelog writes the updated changelog to a temp file and returns the path to the temp file.
-func writeTempChangelog(content string) string {
+func writeTempChangelog(content string) (string, error) {
 	temp, err := os.CreateTemp(os.TempDir(), "changelog*.md")
 	if err != nil {
-		panic(fmt.Errorf("failed to create temp file: %w", err))
+		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
-	_, err = temp.WriteString(content + "\n")
-	if err != nil {
-		panic(fmt.Errorf("failed to write to temp file: %w", err))
+	if _, err := temp.WriteString(content + "\n"); err != nil {
+		_ = temp.Close()
+		return "", fmt.Errorf("failed to write to temp file: %w", err)
 	}
 	_ = temp.Close()
-	return temp.Name()
+	return temp.Name(), nil
 }
