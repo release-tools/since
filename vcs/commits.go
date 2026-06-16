@@ -37,6 +37,15 @@ type CommitConfig struct {
 	UniqueOnly        bool
 }
 
+// FilterStats captures how many commits were considered when fetching
+// commits between two tags, and how many of those were excluded by the
+// configured ignore patterns. It is useful for explaining why a fetch
+// returned no results.
+type FilterStats struct {
+	Considered int
+	Excluded   int
+}
+
 // FetchCommitMessages returns a slice of commit messages between the given tags.
 // If beforeTag is empty, then HEAD is used.
 // If afterTag is empty, the oldest commit is used.
@@ -47,7 +56,7 @@ func FetchCommitMessages(
 	beforeTag string,
 	afterTag string,
 ) ([]string, error) {
-	commits, err := FetchCommitsByTag(config, commitCfg, repoPath, beforeTag, afterTag)
+	commits, _, err := FetchCommitsByTag(config, commitCfg, repoPath, beforeTag, afterTag)
 	if err != nil {
 		return nil, err
 	}
@@ -58,24 +67,26 @@ func FetchCommitMessages(
 // The key is the tag metadata, and the value is a slice of commit messages.
 // If beforeTag is empty, then HEAD is used.
 // If afterTag is empty, the oldest commit is used.
+// The returned FilterStats describes how many commits were considered and
+// how many were dropped by the configured ignore patterns.
 func FetchCommitsByTag(
 	config cfg.SinceConfig,
 	commitCfg CommitConfig,
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-) (*[]TagCommits, error) {
-	commits, err := fetchCommitsBetween(config, commitCfg, repoPath, beforeTag, afterTag)
+) (*[]TagCommits, FilterStats, error) {
+	commits, stats, err := fetchCommitsBetween(config, commitCfg, repoPath, beforeTag, afterTag)
 	if err != nil {
-		return nil, err
+		return nil, FilterStats{}, err
 	}
 
 	if logrus.IsLevelEnabled(logrus.TraceLevel) {
 		logrus.Tracef("commits by tag: %v", commits)
 	} else {
-		logrus.Debugf("fetched %d tags\n", len(*commits))
+		logrus.Debugf("fetched %d tags (considered %d commits, excluded %d)", len(*commits), stats.Considered, stats.Excluded)
 	}
-	return commits, nil
+	return commits, stats, nil
 }
 
 func FlattenCommits(tags *[]TagCommits) []string {
@@ -95,34 +106,34 @@ func fetchCommitsBetween(
 	repoPath string,
 	beforeTag string,
 	afterTag string,
-) (*[]TagCommits, error) {
+) (*[]TagCommits, FilterStats, error) {
 	var excludes []*regexp.Regexp
 	for _, i := range config.Ignore {
 		pattern, err := regexp.Compile(i)
 		if err != nil {
-			return nil, fmt.Errorf("invalid ignore pattern %q in since.yaml: %w", i, err)
+			return nil, FilterStats{}, fmt.Errorf("invalid ignore pattern %q in since.yaml: %w", i, err)
 		}
 		excludes = append(excludes, pattern)
 	}
 
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
-		return nil, err
+		return nil, FilterStats{}, err
 	}
 
 	var beforeCommit *object.Commit
 	if beforeTag != "" {
 		beforeTagMeta, err := r.Tag(beforeTag)
 		if err != nil {
-			return nil, err
+			return nil, FilterStats{}, err
 		}
 		hash, err := getCommitHashForTag(beforeTagMeta, r)
 		if err != nil {
-			return nil, err
+			return nil, FilterStats{}, err
 		}
 		beforeCommit, err = r.CommitObject(hash)
 		if err != nil {
-			return nil, err
+			return nil, FilterStats{}, err
 		}
 	}
 
@@ -130,34 +141,34 @@ func fetchCommitsBetween(
 	if afterTag != "" {
 		afterTagMeta, err := r.Tag(afterTag)
 		if err != nil {
-			return nil, err
+			return nil, FilterStats{}, err
 		}
 		hash, err := getCommitHashForTag(afterTagMeta, r)
 		if err != nil {
-			return nil, err
+			return nil, FilterStats{}, err
 		}
 		afterCommit, err = r.CommitObject(hash)
 		if err != nil {
-			return nil, err
+			return nil, FilterStats{}, err
 		}
 	}
 
 	allTags, err := listAllTags(r)
 	if err != nil {
-		return nil, err
+		return nil, FilterStats{}, err
 	}
 
 	commits, err := r.Log(&git.LogOptions{})
 	if err != nil {
-		return nil, err
+		return nil, FilterStats{}, err
 	}
 
-	tagCommits, err := processCommits(commitCfg, beforeCommit, afterCommit, commits, allTags, excludes)
+	tagCommits, stats, err := processCommits(commitCfg, beforeCommit, afterCommit, commits, allTags, excludes)
 	if err != nil {
-		return nil, err
+		return nil, FilterStats{}, err
 	}
 
-	return tagCommits, nil
+	return tagCommits, stats, nil
 }
 
 func processCommits(
@@ -167,8 +178,9 @@ func processCommits(
 	commits object.CommitIter,
 	allTags map[string]*TagMeta,
 	excludes []*regexp.Regexp,
-) (*[]TagCommits, error) {
+) (*[]TagCommits, FilterStats, error) {
 	var tagCommits []TagCommits
+	var stats FilterStats
 
 	currentTag := TagMeta{
 		Name: UnreleasedVersionName,
@@ -219,8 +231,10 @@ func processCommits(
 			return nil
 		}
 
+		stats.Considered++
 		longMessage := c.Message
 		if !shouldInclude(longMessage, excludes) {
+			stats.Excluded++
 			return nil
 		}
 		message := getShortMessage(longMessage)
@@ -229,13 +243,13 @@ func processCommits(
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, FilterStats{}, err
 	}
 
 	// final tag
 	appendCurrentTag()
 
-	return &tagCommits, nil
+	return &tagCommits, stats, nil
 }
 
 // listAllTags returns a map of tag hashes to tag metadata.

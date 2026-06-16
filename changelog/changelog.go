@@ -189,12 +189,15 @@ func GetUpdatedChangelog(
 	beforeTag string,
 	afterTag string,
 ) (metadata vcs.ReleaseMetadata, updatedChangelog string, err error) {
-	commits, err := vcs.FetchCommitsByTag(config, commitCfg, repoPath, beforeTag, afterTag)
+	commits, stats, err := vcs.FetchCommitsByTag(config, commitCfg, repoPath, beforeTag, afterTag)
 	if err != nil {
 		return vcs.ReleaseMetadata{}, "", fmt.Errorf("failed to fetch commit messages from repo: %s: %v", repoPath, err)
 	}
 	if len(*commits) == 0 {
-		return vcs.ReleaseMetadata{}, "", fmt.Errorf("no changes since start tag")
+		return vcs.ReleaseMetadata{}, "", &NoChangesError{
+			StartTag:      afterTag,
+			ExcludedCount: stats.Excluded,
+		}
 	}
 
 	currentVersion, vPrefix, err := semver.GetCurrentVersion(repoPath, orderBy)
