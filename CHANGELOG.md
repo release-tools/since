@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.19.0] - 2026-06-21
+### Added
+- feat(changelog): explain "no changes" with ignore-pattern hint
+
+### Changed
+- build: add makefile
+- refactor: replace panics with returned errors
+
 ## [0.18.0] - 2026-04-20
 ### Added
 - feat: sign release tags when git signing is enabled (#5)
