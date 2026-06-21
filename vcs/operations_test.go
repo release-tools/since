@@ -49,6 +49,29 @@ func TestCheckBranch_wrongBranch(t *testing.T) {
 	}
 }
 
+func TestCheckBranch_matchingBranch(t *testing.T) {
+	repoDir := createTestRepo(t)
+
+	// resolve the repo's actual current branch so the test does not depend on
+	// whether go-git initialises HEAD as "master" or "main"
+	branch, err := getCurrentBranch(repoDir)
+	if err != nil {
+		t.Fatalf("getCurrentBranch() error = %v", err)
+	}
+
+	config := cfg.SinceConfig{RequireBranch: branch}
+	if err := CheckBranch(repoDir, config); err != nil {
+		t.Errorf("CheckBranch() on required branch error = %v", err)
+	}
+}
+
+func TestCheckBranch_invalidRepo(t *testing.T) {
+	config := cfg.SinceConfig{RequireBranch: "main"}
+	if err := CheckBranch(t.TempDir(), config); err == nil {
+		t.Error("CheckBranch() expected error for invalid repo")
+	}
+}
+
 func TestCommitChangelog(t *testing.T) {
 	repoDir := createTestRepo(t)
 

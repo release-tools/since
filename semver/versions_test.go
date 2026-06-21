@@ -16,7 +16,15 @@ limitations under the License.
 
 package semver
 
-import "testing"
+import (
+	"os"
+	"testing"
+	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/release-tools/since/vcs"
+)
 
 func TestGetNextVersion(t *testing.T) {
 	type args struct {
@@ -72,6 +80,48 @@ func TestGetNextVersion(t *testing.T) {
 				t.Errorf("GetNextVersion() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestGetCurrentVersion verifies that a "v" prefixed tag is reported with the
+// prefix stripped and vPrefix set. Note: vcs caches the latest tag in a
+// package-level variable that this package cannot reset, so this test performs
+// a single repository lookup to avoid cross-test contamination.
+func TestGetCurrentVersion(t *testing.T) {
+	repoDir := t.TempDir()
+
+	repo, err := git.PlainInit(repoDir, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, err := repo.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(repoDir+"/README.md", []byte("hello"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Add("README.md"); err != nil {
+		t.Fatal(err)
+	}
+	sig := &object.Signature{Name: "user", Email: "user@example.com", When: time.Now()}
+	c, err := w.Commit("feat: first", &git.CommitOptions{Author: sig, Committer: sig})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repo.CreateTag("v2.3.4", c, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	version, vPrefix, err := GetCurrentVersion(repoDir, vcs.TagOrderSemver)
+	if err != nil {
+		t.Fatalf("GetCurrentVersion() error = %v", err)
+	}
+	if version != "2.3.4" {
+		t.Errorf("GetCurrentVersion() version = %q, want %q", version, "2.3.4")
+	}
+	if !vPrefix {
+		t.Errorf("GetCurrentVersion() vPrefix = %v, want true", vPrefix)
 	}
 }
 

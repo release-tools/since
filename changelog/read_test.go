@@ -119,6 +119,71 @@ func TestParseChangelog_withHeader(t *testing.T) {
 	}
 }
 
+func TestParseChangelog_nonExistent(t *testing.T) {
+	_, err := ParseChangelog("/nonexistent/CHANGELOG.md", "1.0.0", false)
+	if err == nil {
+		t.Error("ParseChangelog() expected error for non-existent file")
+	}
+}
+
+func Test_readChanges_versionNotFound(t *testing.T) {
+	lines := []string{
+		"# Changelog",
+		"",
+		"## [1.0.0] - 2024-01-01",
+		"- feat: foo",
+	}
+	_, err := readChanges(lines, "9.9.9", false)
+	if err == nil {
+		t.Fatal("readChanges() expected error for missing version")
+	}
+	want := "could not find version 9.9.9 in changelog"
+	if err.Error() != want {
+		t.Errorf("readChanges() error = %q, want %q", err.Error(), want)
+	}
+}
+
+func Test_readChanges_noVersionSections(t *testing.T) {
+	lines := []string{
+		"# Changelog",
+		"",
+		"All notable changes are documented here.",
+	}
+	_, err := readChanges(lines, "", false)
+	if err == nil {
+		t.Fatal("readChanges() expected error when no version sections present")
+	}
+	want := "changelog contains no version sections"
+	if err.Error() != want {
+		t.Errorf("readChanges() error = %q, want %q", err.Error(), want)
+	}
+}
+
+func Test_readChanges_lastVersionToEndOfFile(t *testing.T) {
+	// trailing empty string mirrors ReadFile splitting a file that ends in a
+	// newline; readChanges relies on it to bound the final section
+	lines := []string{
+		"# Changelog",
+		"",
+		"## [1.0.0] - 2024-01-01",
+		"### Added",
+		"- feat: foo",
+		"",
+		"## [0.9.0] - 2023-12-01",
+		"### Fixed",
+		"- fix: bar",
+		"",
+	}
+	got, err := readChanges(lines, "0.9.0", true)
+	if err != nil {
+		t.Fatalf("readChanges() error = %v", err)
+	}
+	want := []string{"## [0.9.0] - 2023-12-01", "### Fixed", "- fix: bar"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("readChanges() = %v, want %v", got, want)
+	}
+}
+
 func Test_readChanges_firstVersion(t *testing.T) {
 	lines := []string{
 		"# Changelog",

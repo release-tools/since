@@ -17,6 +17,8 @@ limitations under the License.
 package cfg
 
 import (
+	"os"
+	"path"
 	"reflect"
 	"testing"
 )
@@ -61,5 +63,33 @@ func Test_loadConfig(t *testing.T) {
 				t.Errorf("loadConfig() got = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestLoadConfig(t *testing.T) {
+	dir := t.TempDir()
+	content := "requireBranch: main\nbefore:\n  - command: echo\n    args:\n      - hello world\n"
+	if err := os.WriteFile(path.Join(dir, defaultConfigFile), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := LoadConfig(dir)
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	want := SinceConfig{RequireBranch: "main", Before: []Hook{{Command: "echo", Args: []string{"hello world"}}}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("LoadConfig() got = %v, want %v", got, want)
+	}
+}
+
+func TestLoadConfig_missingFile(t *testing.T) {
+	// a directory with no since.yaml should yield an empty config, not an error
+	got, err := LoadConfig(t.TempDir())
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	if !reflect.DeepEqual(got, SinceConfig{}) {
+		t.Errorf("LoadConfig() got = %v, want empty config", got)
 	}
 }
