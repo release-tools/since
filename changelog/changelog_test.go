@@ -26,6 +26,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -301,6 +302,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 				t.Errorf("GetUpdatedChangelog() gotUpdatedChangelog = %v, want %v", gotUpdatedChangelog, tt.wantUpdatedChangelog)
 			}
 		})
+	}
+}
+
+func TestInitChangelog(t *testing.T) {
+	repoDir := createTestRepo(t)
+	// add an unreleased commit so there are changes to render
+	commitChange(t, repoDir, "README.md", "unreleased\r\n", "feat: unreleased change", time.Now())
+
+	changelogFile := path.Join(repoDir, "CHANGELOG.md")
+
+	updated, err := InitChangelog(cfg.SinceConfig{}, vcs.CommitConfig{}, changelogFile, vcs.TagOrderSemver, repoDir)
+	if err != nil {
+		t.Fatalf("InitChangelog() error = %v", err)
+	}
+
+	// the rendered changelog should retain the boilerplate header and contain
+	// at least one version section
+	if !strings.HasPrefix(updated, "# Changelog") {
+		t.Errorf("InitChangelog() output missing boilerplate header, got: %q", updated)
+	}
+	if !strings.Contains(updated, "## [") {
+		t.Errorf("InitChangelog() output missing version section, got: %q", updated)
+	}
+
+	// the file written to disk should match the returned content (with the
+	// trailing newline WriteChangelog appends)
+	onDisk, err := os.ReadFile(changelogFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(onDisk) != updated+"\n" {
+		t.Errorf("InitChangelog() file content = %q, want %q", string(onDisk), updated+"\n")
 	}
 }
 
