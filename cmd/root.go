@@ -23,6 +23,8 @@ import (
 	"os"
 )
 
+var Version = "dev"
+
 var rootArgs struct {
 	logLevel string
 	quiet    bool
@@ -38,6 +40,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize(initLogging)
 
+	rootCmd.Version = Version
 	rootCmd.PersistentFlags().StringVarP(&rootArgs.logLevel, "log-level", "l", "debug", "Log level (debug, info, warn, error, fatal, panic)")
 	rootCmd.PersistentFlags().BoolVarP(&rootArgs.quiet, "quiet", "q", false, "Disable logging (useful for scripting)")
 }

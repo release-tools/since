@@ -1,5 +1,6 @@
 FROM golang:1.20 AS builder
 
+ARG VERSION=dev
 WORKDIR /src
 
 COPY go.mod go.sum ./
@@ -7,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /since
+RUN CGO_ENABLED=0 go build -ldflags="-s -w -X github.com/release-tools/since/cmd.Version=${VERSION}" -o /since
 
 FROM scratch
 
