@@ -1,8 +1,10 @@
 export CGO_ENABLED ?= 0
 
+VERSION ?= dev
+
 .PHONY: build
 build:
-	go build -o since
+	go build -ldflags="-s -w -X github.com/release-tools/since/cmd.Version=$(VERSION)" -o since
 
 .PHONY: fmt
 fmt:
