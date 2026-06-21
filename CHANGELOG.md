@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.20.0] - 2026-06-21
+### Added
+- feat: support --version flag to print built version
+
+### Changed
+- ci: update GitHub Actions to latest versions
+
 ## [0.19.0] - 2026-06-21
 ### Added
 - feat(changelog): explain "no changes" with ignore-pattern hint
