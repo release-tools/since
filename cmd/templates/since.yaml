@@ -1,0 +1,53 @@
+# Since Configuration
+# Uncomment and customise the settings below as required.
+
+# Require that the current branch matches a specific branch pattern
+# Before running any since command, this check is performed automatically.
+# Supports exact match or glob patterns (e.g. "release/*", "feature/*")
+# requireBranch: main
+
+# Hooks are scripts or commands that run before or after release operations.
+# They are executed in order and will abort the release if any hook fails.
+
+# Hooks can be defined in two ways:
+# 1. Using command/args - runs the specified command with arguments
+# 2. Using script - writes inline content to a temp file and executes it
+
+# Hooks have access to the following environment variables:
+#   SINCE_NEW_VERSION    - The new version being released (e.g. "1.2.0")
+#   SINCE_OLD_VERSION    - The previous version (e.g. "1.1.0")
+#   SINCE_SHA            - The git commit SHA of the release
+#   SINCE_REPO_PATH      - The path to the git repository
+
+# Example: Command-based hooks
+# before:
+#   - command: sh
+#     args:
+#       - "./scripts/pre-release-check.sh"
+#   - command: echo
+#     args:
+#       - "Preparing release $SINCE_NEW_VERSION"
+# after:
+#   - command: echo
+#     args:
+#       - "Release $SINCE_NEW_VERSION completed"
+
+# Example: Script-based hooks (inline shell scripts)
+# before:
+#   - script: |
+#       #!/bin/bash
+#       echo "Running pre-release checks for $SINCE_NEW_VERSION..."
+#       if [ -n "$SINCE_NEW_VERSION" ]; then
+#         echo "Version is set to: $SINCE_NEW_VERSION"
+#       fi
+#       # Add custom checks below
+
+# Example: Using commit message exclusions to ignore certain commits
+# These patterns are matched against the commit subject line.
+# Commits matching any of these patterns are excluded from changelog entries.
+# ignore:
+#   - "chore:"
+#   - "docs:"
+#   - "test:"
+#   - "ci:"
+#   - "Merge pull request"

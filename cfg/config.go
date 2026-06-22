@@ -37,11 +37,11 @@ type SinceConfig struct {
 	Ignore        []string `yaml:"ignore"`
 }
 
-const defaultConfigFile = "since.yaml"
+const DefaultConfigFile = "since.yaml"
 
 // LoadConfig loads the YAML config file from the given directory.
 func LoadConfig(dir string) (SinceConfig, error) {
-	return loadConfig(path.Join(dir, defaultConfigFile))
+	return loadConfig(path.Join(dir, DefaultConfigFile))
 }
 
 // loadConfig loads the YAML config file from the given path.
