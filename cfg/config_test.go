@@ -69,7 +69,7 @@ func Test_loadConfig(t *testing.T) {
 func TestLoadConfig(t *testing.T) {
 	dir := t.TempDir()
 	content := "requireBranch: main\nbefore:\n  - command: echo\n    args:\n      - hello world\n"
-	if err := os.WriteFile(path.Join(dir, defaultConfigFile), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path.Join(dir, DefaultConfigFile), []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 

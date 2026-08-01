@@ -35,6 +35,9 @@ go install github.com/release-tools/since
 - [version](#project-version)
 - [release](#project-release)
 
+**Config** - Scaffold a config file for the tool.
+- [init](#init)
+
 ---
 
 ### `changelog generate`
@@ -202,9 +205,34 @@ Global Flags:
   -t, --tag string         Include commits after this tag
 ```
 
+---
+
+### `init`
+
+Creates a new `since.yaml` config file, pre-populated with commented
+examples for branch requirements, pre/post hook scripts, and commit
+exclusions. If the file already exists, it is overwritten.
+
+```
+Usage:
+  since init [flags]
+
+Flags:
+  -h, --help            help for init
+  -o, --output string   Directory to write the config file to (default: current directory)
+
+Global Flags:
+  -l, --log-level string   Log level (debug, info, warn, error, fatal, panic) (default "debug")
+  -q, --quiet              Disable logging (useful for scripting)
+```
+
+---
+
 #### The `since.yaml` file
 
 You can also use a `since.yaml` file to configure the tool. This file should be placed in the root of your project repository.
+
+The quickest way to start is `since init`, which drops a fully commented example config into your project. Uncomment the bits you need.
 
 ```yaml
 # require us to be on the main branch
