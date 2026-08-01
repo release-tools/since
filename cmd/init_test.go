@@ -21,6 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/release-tools/since/cfg"
 )
 
 func Test_runInit(t *testing.T) {
@@ -174,6 +176,74 @@ func Test_runInit(t *testing.T) {
 
 		if !strings.Contains(string(content), "script:") {
 			t.Error("config file does not contain script-based hook example")
+		}
+	})
+
+	t.Run("overwrites existing config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		initSubCmd.outputFile = tmpDir
+		defer func() { initSubCmd.outputFile = "" }()
+
+		configPath := filepath.Join(tmpDir, "since.yaml")
+		if err := os.WriteFile(configPath, []byte("stale: content"), 0644); err != nil {
+			t.Fatalf("failed to seed existing config file: %v", err)
+		}
+
+		err := runInit()
+		if err != nil {
+			t.Fatalf("runInit() unexpected error: %v", err)
+		}
+
+		content, err := os.ReadFile(configPath)
+		if err != nil {
+			t.Fatalf("failed to read created config file: %v", err)
+		}
+
+		if strings.Contains(string(content), "stale: content") {
+			t.Error("config file was not overwritten")
+		}
+		if !strings.Contains(string(content), "requireBranch:") {
+			t.Error("overwritten config file does not contain template content")
+		}
+	})
+
+	t.Run("returns error when output directory does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		initSubCmd.outputFile = filepath.Join(tmpDir, "does-not-exist")
+		defer func() { initSubCmd.outputFile = "" }()
+
+		err := runInit()
+		if err == nil {
+			t.Fatal("runInit() expected an error when writing to a missing directory, got nil")
+		}
+	})
+
+	t.Run("generated config loads through the real loader", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		initSubCmd.outputFile = tmpDir
+		defer func() { initSubCmd.outputFile = "" }()
+
+		if err := runInit(); err != nil {
+			t.Fatalf("runInit() unexpected error: %v", err)
+		}
+
+		// The template ships with every example commented out, so the loader
+		// should parse it without error and yield an empty (default) config.
+		// This guards against invalid YAML or accidentally uncommented lines
+		// slipping into the template.
+		config, err := cfg.LoadConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("generated config failed to load: %v", err)
+		}
+
+		if config.RequireBranch != "" {
+			t.Errorf("expected empty RequireBranch, got %q", config.RequireBranch)
+		}
+		if len(config.Before) != 0 || len(config.After) != 0 || len(config.Ignore) != 0 {
+			t.Error("expected no active hooks or ignore patterns in default template")
 		}
 	})
 }
