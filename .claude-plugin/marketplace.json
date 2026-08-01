@@ -1,0 +1,17 @@
+{
+  "name": "release-tools",
+  "owner": {
+    "name": "release-tools",
+    "url": "https://github.com/release-tools"
+  },
+  "description": "Claude Code plugins for release-tools projects.",
+  "plugins": [
+    {
+      "name": "since",
+      "source": "./",
+      "description": "Drive releases with the since tool: perform a release, generate changelogs, compute the next semantic version, and scaffold config from git history and conventional commits.",
+      "category": "development",
+      "tags": ["release", "changelog", "semver"]
+    }
+  ]
+}
