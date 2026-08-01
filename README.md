@@ -226,22 +226,43 @@ after:
 
 ---
 
-## Using `since` with Claude Code
+## Using `since` with AI coding agents
 
-This repository doubles as a [Claude Code](https://code.claude.com) plugin
-marketplace. Installing the plugin adds a `since` skill that teaches Claude how
-to perform releases, generate changelogs, work out the next version, and
-scaffold a `since.yaml` — driving the commands documented above.
+This repository ships an [Agent Skill](https://github.com/vercel-labs/skills)
+(`skills/since/SKILL.md`) that teaches an AI coding agent how to perform
+releases, generate changelogs, work out the next version, and scaffold a
+`since.yaml` — driving the commands documented above.
 
-Install it from within Claude Code:
+### Any agent (`npx skills`)
+
+The skill works with Claude Code, Cursor, Codex, OpenCode and other agents that
+support the open skills format. Install it with a single command:
+
+```bash
+npx skills add release-tools/since
+```
+
+That auto-discovers the skill in this repo. Add `-g` to install it globally
+(user directory) rather than into the current project, or `-a` to target a
+specific agent, for example:
+
+```bash
+npx skills add release-tools/since -g -a claude-code
+```
+
+### Claude Code plugin
+
+This repository also acts as a [Claude Code](https://code.claude.com) plugin
+marketplace, so you can install the same skill (plus future commands) as a
+plugin:
 
 ```
 /plugin marketplace add release-tools/since
 /plugin install since@release-tools
 ```
 
-Then ask Claude to "perform a release", "work out the next version", or
-"scaffold a since config", and it will use the tool accordingly.
+Once installed, ask the agent to "perform a release", "work out the next
+version", or "scaffold a since config", and it will use the tool accordingly.
 
 ---
 
