@@ -17,8 +17,10 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/release-tools/since/semver"
 	"testing"
+
+	"github.com/release-tools/since/semver"
+	"github.com/release-tools/since/vcs"
 )
 
 func Test_getNextVersion(t *testing.T) {
@@ -94,4 +96,39 @@ func Test_getNextVersion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_printVersion(t *testing.T) {
+	commitCfg := vcs.CommitConfig{UniqueOnly: true}
+
+	t.Run("returns the current version when current is set", func(t *testing.T) {
+		repoDir, _ := createChangelogTestRepo(t)
+
+		got, err := printVersion(commitCfg, repoDir, "", vcs.TagOrderSemver, true)
+		if err != nil {
+			t.Fatalf("printVersion() error = %v", err)
+		}
+		if got != "0.1.0" {
+			t.Errorf("printVersion() current = %q, want 0.1.0", got)
+		}
+	})
+
+	t.Run("returns the next version based on unreleased commits", func(t *testing.T) {
+		repoDir, _ := createChangelogTestRepo(t)
+
+		got, err := printVersion(commitCfg, repoDir, "", vcs.TagOrderSemver, false)
+		if err != nil {
+			t.Fatalf("printVersion() error = %v", err)
+		}
+		// an unreleased feat commit bumps the minor version from 0.1.0 to 0.2.0
+		if got != "0.2.0" {
+			t.Errorf("printVersion() next = %q, want 0.2.0", got)
+		}
+	})
+
+	t.Run("returns error for a non-repository path", func(t *testing.T) {
+		if _, err := printVersion(commitCfg, t.TempDir(), "", vcs.TagOrderSemver, false); err == nil {
+			t.Error("printVersion() expected error for a non-repository path")
+		}
+	})
 }

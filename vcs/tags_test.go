@@ -12,10 +12,10 @@ import (
 
 func Test_isTagSigningEnabled(t *testing.T) {
 	tests := []struct {
-		name   string
-		key    string
-		value  string
-		want   bool
+		name  string
+		key   string
+		value string
+		want  bool
 	}{
 		{name: "unset", key: "", want: false},
 		{name: "tag.gpgSign=true", key: "tag.gpgSign", value: "true", want: true},
@@ -48,6 +48,72 @@ func Test_isTagSigningEnabled(t *testing.T) {
 				t.Errorf("isTagSigningEnabled() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+// setGitConfig sets a raw git config option in the given section for the repo.
+func setGitConfig(t *testing.T, repoDir, section, option, value string) {
+	t.Helper()
+	repo, err := git.PlainOpen(repoDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	conf, err := repo.Config()
+	if err != nil {
+		t.Fatal(err)
+	}
+	conf.Raw.Section(section).SetOption(option, value)
+	if err := repo.SetConfig(conf); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTagRelease_signedTagInvokesGitCli(t *testing.T) {
+	repoDir := createTestRepo(t)
+
+	// enable signing, but point gpg at a program that always fails so the
+	// signing attempt errors immediately rather than prompting for a passphrase.
+	setGitConfig(t, repoDir, "tag", "gpgSign", "true")
+	setGitConfig(t, repoDir, "gpg", "program", "/nonexistent-gpg-program")
+
+	sha, err := GetHeadSha(repoDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = TagRelease(repoDir, sha, "v2.0.0")
+	if err == nil {
+		t.Fatal("TagRelease() expected error when signing is enabled but gpg is unavailable")
+	}
+	if !strings.Contains(err.Error(), "git tag -s failed") {
+		t.Errorf("TagRelease() error = %v, want it to mention 'git tag -s failed'", err)
+	}
+}
+
+func TestTagRelease_invalidRepo(t *testing.T) {
+	// a bare temp dir is not a git repository, so opening it should fail after
+	// the (unsigned) signing check reports no signing config.
+	err := TagRelease(t.TempDir(), "0000000000000000000000000000000000000000", "v1.0.0")
+	if err == nil {
+		t.Error("TagRelease() expected error for a non-repository path")
+	}
+}
+
+func Test_createSignedTag_failsWithoutSigningKey(t *testing.T) {
+	repoDir := createTestRepo(t)
+	setGitConfig(t, repoDir, "gpg", "program", "/nonexistent-gpg-program")
+
+	sha, err := GetHeadSha(repoDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = createSignedTag(repoDir, sha, "v3.0.0")
+	if err == nil {
+		t.Fatal("createSignedTag() expected error when gpg program is unavailable")
+	}
+	if !strings.Contains(err.Error(), "git tag -s failed") {
+		t.Errorf("createSignedTag() error = %v, want it to mention 'git tag -s failed'", err)
 	}
 }
 
