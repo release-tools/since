@@ -39,9 +39,24 @@ type SinceConfig struct {
 
 const DefaultConfigFile = "since.yaml"
 
+// SupportedConfigFiles lists the config file names since recognises,
+// in order of preference. DefaultConfigFile is the one written by `since init`.
+var SupportedConfigFiles = []string{"since.yaml", "since.yml"}
+
 // LoadConfig loads the YAML config file from the given directory.
+// It looks for each of the SupportedConfigFiles in order of preference,
+// loading the first that exists. If none exist, an empty config is returned.
 func LoadConfig(dir string) (SinceConfig, error) {
-	return loadConfig(path.Join(dir, DefaultConfigFile))
+	for _, name := range SupportedConfigFiles {
+		configPath := path.Join(dir, name)
+		if _, err := os.Stat(configPath); err == nil {
+			return loadConfig(configPath)
+		} else if !os.IsNotExist(err) {
+			return SinceConfig{}, fmt.Errorf("failed to check config file '%s': %w", configPath, err)
+		}
+	}
+	logrus.Tracef("no config file found in '%s'", dir)
+	return SinceConfig{}, nil
 }
 
 // loadConfig loads the YAML config file from the given path.

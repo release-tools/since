@@ -32,6 +32,7 @@ var defaultConfig string
 
 var initSubCmd struct {
 	outputFile string
+	force      bool
 }
 
 // initSubCmd represents the init subcommand
@@ -40,7 +41,7 @@ var initSubCmdCmd = &cobra.Command{
 	Short: "Create a new since.yaml config file",
 	Long: `Creates a new since.yaml config file with example configuration,
 including branch requirements, pre/post hook scripts, and commit exclusions.
-If the config file already exists, it will be overwritten.`,
+If a config file already exists, the command fails unless --force is set.`,
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -58,14 +59,19 @@ func runInit() error {
 			return fmt.Errorf("failed to get current directory: %w", err)
 		}
 	}
-	configPath := filepath.Join(configDir, cfg.DefaultConfigFile)
 
-	if _, err := os.Stat(configPath); err == nil {
-		logrus.Warnf("config file '%s' already exists, overwriting", configPath)
-	} else if !os.IsNotExist(err) {
-		return fmt.Errorf("failed to check config file: %w", err)
+	if !initSubCmd.force {
+		for _, name := range cfg.SupportedConfigFiles {
+			existing := filepath.Join(configDir, name)
+			if _, err := os.Stat(existing); err == nil {
+				return fmt.Errorf("config file '%s' already exists; use --force to overwrite", existing)
+			} else if !os.IsNotExist(err) {
+				return fmt.Errorf("failed to check config file: %w", err)
+			}
+		}
 	}
 
+	configPath := filepath.Join(configDir, cfg.DefaultConfigFile)
 	if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
@@ -78,4 +84,5 @@ func init() {
 	rootCmd.AddCommand(initSubCmdCmd)
 
 	initSubCmdCmd.Flags().StringVarP(&initSubCmd.outputFile, "output", "o", "", "Directory to write the config file to (default: current directory)")
+	initSubCmdCmd.Flags().BoolVarP(&initSubCmd.force, "force", "f", false, "Overwrite an existing config file")
 }

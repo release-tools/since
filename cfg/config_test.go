@@ -84,12 +84,66 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadConfig_missingFile(t *testing.T) {
-	// a directory with no since.yaml should yield an empty config, not an error
+	// a directory with no config file should yield an empty config, not an error
 	got, err := LoadConfig(t.TempDir())
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
 	}
 	if !reflect.DeepEqual(got, SinceConfig{}) {
 		t.Errorf("LoadConfig() got = %v, want empty config", got)
+	}
+}
+
+func TestLoadConfig_ymlExtension(t *testing.T) {
+	// a directory with only a since.yml file should be loaded
+	dir := t.TempDir()
+	content := "requireBranch: develop\n"
+	if err := os.WriteFile(path.Join(dir, "since.yml"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := LoadConfig(dir)
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	want := SinceConfig{RequireBranch: "develop"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("LoadConfig() got = %v, want %v", got, want)
+	}
+}
+
+func TestLoadConfig_statError(t *testing.T) {
+	// when the "directory" is actually a regular file, statting a child path
+	// yields a non-IsNotExist error, which should be surfaced rather than
+	// treated as a missing config.
+	dir := t.TempDir()
+	notADir := path.Join(dir, "since-file")
+	if err := os.WriteFile(notADir, []byte("not a directory"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadConfig(notADir)
+	if err == nil {
+		t.Fatal("LoadConfig() expected an error when the path is not a directory, got nil")
+	}
+}
+
+func TestLoadConfig_yamlTakesPrecedenceOverYml(t *testing.T) {
+	// when both since.yaml and since.yml exist, since.yaml wins
+	dir := t.TempDir()
+	if err := os.WriteFile(path.Join(dir, "since.yaml"), []byte("requireBranch: main\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path.Join(dir, "since.yml"), []byte("requireBranch: develop\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := LoadConfig(dir)
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	want := SinceConfig{RequireBranch: "main"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("LoadConfig() got = %v, want %v", got, want)
 	}
 }

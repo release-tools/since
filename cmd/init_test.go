@@ -179,11 +179,68 @@ func Test_runInit(t *testing.T) {
 		}
 	})
 
-	t.Run("overwrites existing config file", func(t *testing.T) {
+	t.Run("refuses to overwrite existing config file without force", func(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		initSubCmd.outputFile = tmpDir
 		defer func() { initSubCmd.outputFile = "" }()
+
+		configPath := filepath.Join(tmpDir, "since.yaml")
+		if err := os.WriteFile(configPath, []byte("stale: content"), 0644); err != nil {
+			t.Fatalf("failed to seed existing config file: %v", err)
+		}
+
+		err := runInit()
+		if err == nil {
+			t.Fatal("runInit() expected an error when config file exists, got nil")
+		}
+
+		content, err := os.ReadFile(configPath)
+		if err != nil {
+			t.Fatalf("failed to read config file: %v", err)
+		}
+		if !strings.Contains(string(content), "stale: content") {
+			t.Error("existing config file was overwritten despite no force flag")
+		}
+	})
+
+	t.Run("refuses to overwrite existing config file with alternate extension", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		initSubCmd.outputFile = tmpDir
+		defer func() { initSubCmd.outputFile = "" }()
+
+		ymlPath := filepath.Join(tmpDir, "since.yml")
+		if err := os.WriteFile(ymlPath, []byte("stale: content"), 0644); err != nil {
+			t.Fatalf("failed to seed existing config file: %v", err)
+		}
+
+		err := runInit()
+		if err == nil {
+			t.Fatal("runInit() expected an error when since.yml exists, got nil")
+		}
+
+		if _, err := os.Stat(filepath.Join(tmpDir, "since.yaml")); !os.IsNotExist(err) {
+			t.Error("since.yaml was created despite existing since.yml and no force flag")
+		}
+		content, err := os.ReadFile(ymlPath)
+		if err != nil {
+			t.Fatalf("failed to read config file: %v", err)
+		}
+		if !strings.Contains(string(content), "stale: content") {
+			t.Error("existing since.yml was modified despite no force flag")
+		}
+	})
+
+	t.Run("overwrites existing config file with force", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		initSubCmd.outputFile = tmpDir
+		initSubCmd.force = true
+		defer func() {
+			initSubCmd.outputFile = ""
+			initSubCmd.force = false
+		}()
 
 		configPath := filepath.Join(tmpDir, "since.yaml")
 		if err := os.WriteFile(configPath, []byte("stale: content"), 0644); err != nil {
@@ -205,6 +262,25 @@ func Test_runInit(t *testing.T) {
 		}
 		if !strings.Contains(string(content), "requireBranch:") {
 			t.Error("overwritten config file does not contain template content")
+		}
+	})
+
+	t.Run("returns error when config check cannot stat the path", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		// point the output at a path whose parent is a regular file, so statting
+		// the config file yields a non-IsNotExist error (ENOTDIR).
+		notADir := filepath.Join(tmpDir, "regular-file")
+		if err := os.WriteFile(notADir, []byte("not a directory"), 0644); err != nil {
+			t.Fatalf("failed to seed file: %v", err)
+		}
+
+		initSubCmd.outputFile = notADir
+		defer func() { initSubCmd.outputFile = "" }()
+
+		err := runInit()
+		if err == nil {
+			t.Fatal("runInit() expected an error when the config path cannot be checked, got nil")
 		}
 	})
 
