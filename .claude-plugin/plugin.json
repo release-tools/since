@@ -1,0 +1,14 @@
+{
+  "name": "since",
+  "displayName": "since",
+  "description": "Drive releases with the since tool: perform a release, generate and update changelogs, compute the next semantic version, and scaffold config — all from git history and conventional commits.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Pete Cornish",
+    "email": "outofcoffee@gmail.com"
+  },
+  "homepage": "https://github.com/release-tools/since",
+  "repository": "https://github.com/release-tools/since",
+  "license": "Apache-2.0",
+  "keywords": ["since", "release", "changelog", "semver", "conventional-commits", "versioning"]
+}

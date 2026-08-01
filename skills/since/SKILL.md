@@ -16,7 +16,8 @@ from the commits since the last tag, and can commit and tag a release in one
 step.
 
 Commands are grouped under `changelog`, `project`, and a top-level `init`. Run
-`since <command> --help` for the full flag list.
+`since <command> --help` for the full flag list. Install it with
+`brew install release-tools/tap/since` or `go install github.com/release-tools/since`.
 
 ## Perform a release
 
@@ -43,6 +44,7 @@ Useful flags:
 - `-o, --order-by` — how the latest tag is chosen: `semver` (default),
   `commit-date`, or `alphabetical`.
 - `-t, --tag` — include commits after this specific tag.
+- `--unique` — de-duplicate commit messages (default true).
 
 Typical flow:
 
@@ -103,8 +105,10 @@ for scripting).
 
 ## Notes
 
-- Version bumps follow conventional commits: `feat:` → minor, `fix:` → patch, a
-  `!` or `BREAKING CHANGE` footer → major.
+- Version bumps follow conventional commits: `feat:` → minor; `fix:` and other
+  types (`build`, `chore`, `ci`, `docs`, `refactor`, `security`, `style`,
+  `test`) → patch; a `!` suffix (e.g. `feat!:`) or a `BREAKING CHANGE` footer →
+  major.
 - Use `-q/--quiet` when capturing output in scripts so log lines don't pollute
   stdout.
 - In CI, the `release-tools/since` GitHub Action can extract the latest release

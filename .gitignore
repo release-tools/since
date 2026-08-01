@@ -1,5 +1,5 @@
 *.iml
 /.idea/
 /dist/
-since
+/since
 .claude/*.local.json

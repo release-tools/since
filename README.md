@@ -226,6 +226,25 @@ after:
 
 ---
 
+## Using `since` with Claude Code
+
+This repository doubles as a [Claude Code](https://code.claude.com) plugin
+marketplace. Installing the plugin adds a `since` skill that teaches Claude how
+to perform releases, generate changelogs, work out the next version, and
+scaffold a `since.yaml` — driving the commands documented above.
+
+Install it from within Claude Code:
+
+```
+/plugin marketplace add release-tools/since
+/plugin install since@release-tools
+```
+
+Then ask Claude to "perform a release", "work out the next version", or
+"scaffold a since config", and it will use the tool accordingly.
+
+---
+
 ## Using `since` with GitHub Actions
 
 You can use `since` with GitHub Actions to automate the release process.
