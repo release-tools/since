@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.21.0] - 2026-08-01
+### Added
+- feat: add an agent skill (#10)
+- feat: add since init subcommand to scaffold config file (#9)
+- feat: guard since init against overwriting existing config
+
+### Changed
+- test: add coverage for changelog, semver, cfg and vcs core logic
+
 ## [0.20.0] - 2026-06-21
 ### Added
 - feat: support --version flag to print built version
