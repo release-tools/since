@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.21.1] - 2026-08-09
+### Changed
+- docs: note that since creates a lightweight tag by default
+- test: cover changelog command handlers and tag signing
+
 ## [0.21.0] - 2026-08-01
 ### Added
 - feat: add an agent skill (#10)
