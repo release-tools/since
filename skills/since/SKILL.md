@@ -30,8 +30,9 @@ since project release
 
 This generates a new changelog section from the commits since the last release,
 **commits** the updated `CHANGELOG.md`, and creates a **new git tag** for the
-computed version — all in one step. It does not push; push the branch and tags
-separately once you've confirmed the result.
+computed version — all in one step. The tag is lightweight unless git is
+configured to sign tags. It does not push; push the branch and tags separately
+once you've confirmed the result.
 
 Before running it, check for a `since.yaml` config (see below) — it may enforce
 a required branch and run `before`/`after` hooks (tests, publish steps). A
@@ -52,8 +53,14 @@ Typical flow:
 since project version        # preview the version that will be cut
 since project changes        # review what will go into the changelog
 since project release        # commit the changelog and create the tag
-git push --follow-tags       # publish the commit and tag
+git push && git push --tags  # publish the commit and tag
 ```
+
+Note `since` creates a **lightweight** tag by default, so `git push --follow-tags`
+won't push it — that flag only picks up annotated tags. Use `git push --tags`, or
+push the tag by name. If git is configured to sign tags (`tag.gpgSign` or
+`tag.forceSignAnnotated`), `since` creates an annotated, signed tag instead, and
+`--follow-tags` does work.
 
 ## Scaffold a config file: `since init`
 
