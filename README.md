@@ -312,6 +312,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -320,8 +323,19 @@ jobs:
         with:
           output-file: release-changes.md
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Create release
+        uses: actions/github-script@v9
         with:
-          body_path: release-changes.md
+          script: |
+            const fs = require('fs');
+            const tag = context.ref.replace('refs/tags/', '');
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              body: fs.readFileSync('release-changes.md', 'utf8'),
+              draft: false,
+              prerelease: false,
+            });
 ```

@@ -119,4 +119,5 @@ for scripting).
 - Use `-q/--quiet` when capturing output in scripts so log lines don't pollute
   stdout.
 - In CI, the `release-tools/since` GitHub Action can extract the latest release
-  notes into a file for `softprops/action-gh-release`.
+  notes into a file, which you can pass as the body when creating a GitHub
+  release (e.g. via `actions/github-script`).
