@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.21.3] - 2026-08-09
+### Changed
+- docs: create GitHub releases with actions/github-script
+
 ## [0.21.2] - 2026-08-09
 ### Changed
 - ci: build release notes from the changelog
